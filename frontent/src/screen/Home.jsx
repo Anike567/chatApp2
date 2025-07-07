@@ -1,15 +1,32 @@
 import React, { useEffect, useState } from 'react';
 import Loader from '../components/Loader';
 import axios from 'axios';
-import { FiSend } from 'react-icons/fi'
+import { FiSend } from 'react-icons/fi';
+import { io } from 'socket.io-client';
+import { useRef } from 'react';
 
 export default function Home() {
-    const [isLoading, setLoading] = useState(true)
-    const [userList, setUserList] = useState([])
-    const [selectedUser, setSelectedUser] = useState(null)
-    if (selectedUser) {
-        console.log(selectedUser.name.first);
-    }
+    const [isLoading, setLoading] = useState(true);
+    const [userList, setUserList] = useState([]);
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [message, setMessage] = useState("");
+    const socket = useRef(null);
+
+    useEffect(() => {
+        if (!socket.current) {
+            socket.current = io("http://localhost:3000");
+
+        }
+
+        return () => {
+            if (socket.current) {
+                socket.current.disconnect();
+            }
+        };
+    }, []);
+
+
+
     const fetchUser = async () => {
         try {
             const res = await axios.get('https://randomuser.me/api/?results=50')
@@ -20,6 +37,15 @@ export default function Home() {
             console.error('Error fetching users:', err)
         }
     }
+
+    const handleSend = (e) => {
+        if (e.key === 'Enter') {
+            console.log(message);
+            setMessage("");
+
+        }
+    }
+
 
     useEffect(() => {
         fetchUser()
@@ -51,8 +77,13 @@ export default function Home() {
                 {selectedUser ? (
                     <div className="flex flex-col h-full">
                         {/* Header */}
-                        <div className="p-5 border-b font-semibold text-lg bg-blue-300 rounded-t-lg">
-                            {`${selectedUser.name.first} ${selectedUser.name.last}`}
+                        <div className="flex  items-center p-5 border-b font-semibold text-lg bg-blue-300 rounded-t-lg">
+                            <div id="dp-wrapper " className='mx-5'>
+                                <img src={selectedUser.picture} />
+                            </div>
+                            <div id="title-wrapper">
+                                <p>{`${selectedUser.name.first} ${selectedUser.name.last}`}</p>
+                            </div>
                         </div>
 
                         {/* Message body */}
@@ -64,10 +95,14 @@ export default function Home() {
                         <div className="flex justify-center items-center p-5 border-t bg-blue-300 rounded-b-lg">
                             <div className="flex items-center w-full max-w-xl">
                                 <input
+                                    onKeyDown={handleSend}
+                                    onChange={(e) => setMessage(e.target.value)}
                                     type="text"
-                                    className="flex-1 p-3 border-2 rounded-lg focus:outline-none"
+                                    className="flex-1 p-3 border-2 font-bold text-black rounded-lg focus:outline-none"
                                     placeholder="Type a message..."
+                                    value={message}
                                 />
+
                                 <button className="ml-4 bg-green-500 text-white p-5 cursor-pointer rounded-full hover:bg-green-600 active:scale-95 transition duration-200">
                                     <FiSend className="h-5 w-5" />
                                 </button>
