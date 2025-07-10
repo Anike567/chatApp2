@@ -1,37 +1,27 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import Loader from '../components/Loader';
 import axios from 'axios';
 import { FiSend } from 'react-icons/fi';
-import { io } from 'socket.io-client';
-import { useRef } from 'react';
+import { SocketContext } from '../store/socketIdContext';
+import { AuthContext } from '../store/authContext';
+
+
 
 export default function Home() {
+    const loggedInUser = useContext(AuthContext).authData.user;
     const [isLoading, setLoading] = useState(true);
     const [userList, setUserList] = useState([]);
     const [selectedUser, setSelectedUser] = useState(null);
     const [message, setMessage] = useState("");
-    const socket = useRef(null);
 
-    useEffect(() => {
-        if (!socket.current) {
-            socket.current = io("http://localhost:3000");
-
-        }
-
-        return () => {
-            if (socket.current) {
-                socket.current.disconnect();
-            }
-        };
-    }, []);
-
+    const {socket} = useContext(SocketContext);
 
 
     const fetchUser = async () => {
         try {
-            const res = await axios.get('https://randomuser.me/api/?results=50')
-            const users = res.data.results
-            setUserList(users)
+            const res = await axios.get('http://localhost:3000/users/')
+            const users = res.data;
+            setUserList(users.message.users)
             setLoading(false)
         } catch (err) {
             console.error('Error fetching users:', err)
@@ -40,12 +30,18 @@ export default function Home() {
 
     const handleSend = (e) => {
         if (e.key === 'Enter') {
-            console.log(message);
+            
+            socket.emit("message-received",message);
             setMessage("");
 
         }
     }
 
+    useEffect(()=>{
+        socket.on('message-received',(data)=>{
+            console.log(data);
+        })
+    },[])
 
     useEffect(() => {
         fetchUser()
@@ -62,11 +58,11 @@ export default function Home() {
                 {userList.map((user, index) => (
                     <div
                         key={index}
-                        onClick={() => setSelectedUser(user)}
+                        onClick={() => setSelectedUser(loggedInUser)}
                         className="bg-blue-300 my-3 p-4 rounded-lg flex items-center justify-center cursor-pointer hover:underline transition duration-200"
                     >
                         <p className="text-center font-medium">
-                            {`${user.name.title} ${user.name.first} ${user.name.last}`}
+                            {`${loggedInUser.name} ${user.name.first} ${user.name.last}`}
                         </p>
                     </div>
                 ))}
@@ -82,7 +78,7 @@ export default function Home() {
                                 <img src={selectedUser.picture} />
                             </div>
                             <div id="title-wrapper">
-                                <p>{`${selectedUser.name.first} ${selectedUser.name.last}`}</p>
+                                <p>{`${selectedUser.name}`}</p>
                             </div>
                         </div>
 
@@ -103,7 +99,7 @@ export default function Home() {
                                     value={message}
                                 />
 
-                                <button className="ml-4 bg-green-500 text-white p-5 cursor-pointer rounded-full hover:bg-green-600 active:scale-95 transition duration-200">
+                                <button onClick={handleSend} className="ml-4 bg-green-500 text-white p-5 cursor-pointer rounded-full hover:bg-green-600 active:scale-95 transition duration-200">
                                     <FiSend className="h-5 w-5" />
                                 </button>
                             </div>

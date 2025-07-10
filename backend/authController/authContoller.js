@@ -5,13 +5,14 @@ const userRouter = express.Router();
 
 userRouter.get('/', async (req, res) => {
     try {
-        const response = await fetch('http://localhost:3000/users');
-        
+        const response = await fetch('https://randomuser.me/api/?results=50');
+        const users = await response.json();
+
 
         res.json({
             status: true,
             message: {
-                users: response.data.results
+                users: users.results
             }
         });
     } catch (error) {
