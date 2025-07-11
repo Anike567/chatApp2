@@ -2,8 +2,9 @@ import React, { useEffect, useState, useContext } from 'react';
 import { SocketContext } from '../store/socketIdContext';
 import Loader from '../components/Loader';
 import { FiX } from 'react-icons/fi';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../store/authContext';
+
 
 export default function Login() {
   const { authData, setAuthData } = useContext(AuthContext);
@@ -38,17 +39,24 @@ export default function Login() {
 
   };
 
+  useEffect(()=>{
+    if(authData.isLoggedIn){
+      navigate('/');
+    }
+  })
 
   useEffect(() => {
     if (!socket) return;
 
     const handleLoginSuccessEvent = (data) => {
       console.log('Login Success:', data);
-
-      setAuthData({
+      const authData = {
         isLoggedIn: true,
         user: data.message.user
-      })
+      }
+
+      setAuthData(authData);
+      localStorage.setItem('user-data', JSON.stringify(authData));
       navigate('/')
       setLoading(false);
     };
@@ -132,7 +140,15 @@ export default function Login() {
         )}
 
 
+        <div className='text-center my-10'>
+          <Link to="/signup" className="text-blue-500 hover:underline">
+            Signup!
+          </Link>
+        </div>
       </div>
+
+
+
     </div>
   );
 }

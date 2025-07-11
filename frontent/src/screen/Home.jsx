@@ -14,8 +14,7 @@ export default function Home() {
     const [selectedUser, setSelectedUser] = useState(null);
     const [message, setMessage] = useState("");
 
-    const {socket} = useContext(SocketContext);
-
+    const { socket } = useContext(SocketContext);
 
     const fetchUser = async () => {
         try {
@@ -52,7 +51,7 @@ export default function Home() {
     }
 
     return (
-        <div className="flex h-full w-full px-4 py-6 space-x-4">
+        <div className="flex h-full w-full px-4 py-6 space-x-4 bg-white">
             {/* Left Sidebar */}
             <div className="w-full sm:w-[20%] h-full overflow-auto p-4 bg-gray-100 border border-gray-300 rounded-lg">
                 {userList.map((user, index) => (
@@ -62,7 +61,7 @@ export default function Home() {
                         className="bg-blue-300 my-3 p-4 rounded-lg flex items-center justify-center cursor-pointer hover:underline transition duration-200"
                     >
                         <p className="text-center font-medium">
-                            {`${loggedInUser.name} ${user.name.first} ${user.name.last}`}
+                            {`${user.name.first} ${user.name.last}`}
                         </p>
                     </div>
                 ))}
