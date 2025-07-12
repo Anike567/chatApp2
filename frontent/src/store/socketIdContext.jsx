@@ -1,22 +1,26 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useEffect, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
 
 export const SocketContext = createContext();
 
 export default function SocketIdContextProvider({ children }) {
+  const socketRef = useRef(null);
   const [socketId, setSocketId] = useState(null);
-  const [socket, setSocket] = useState(null);
   const [socketLoading, setSocketLoading] = useState(true);
 
   useEffect(() => {
     const newSocket = io('http://localhost:3000');
+    socketRef.current = newSocket;
 
-    setSocket(newSocket);
-
-    newSocket.on('connect', () => {
+    if (newSocket.connected) {
       setSocketId(newSocket.id);
-      setSocketLoading(false); 
-    });
+      setSocketLoading(false);
+    } else {
+      newSocket.on('connect', () => {
+        setSocketId(newSocket.id);
+        setSocketLoading(false);
+      });
+    }
 
     return () => {
       newSocket.disconnect();
@@ -24,7 +28,7 @@ export default function SocketIdContextProvider({ children }) {
   }, []);
 
   return (
-    <SocketContext.Provider value={{ socketId, setSocketId, socket, socketLoading }}>
+    <SocketContext.Provider value={{ socketId, socket: socketRef.current, socketLoading }}>
       {children}
     </SocketContext.Provider>
   );

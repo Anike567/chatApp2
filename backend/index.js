@@ -5,9 +5,10 @@ const userRouter = require('./authController/authContoller.js');
 const cors = require('cors');
 const socketHandler = require('./socket/socketHandler.js');
 const path = require('path');
+const dotenv = require('dotenv');
 
 
-
+dotenv.config();
 const app = express();
 
 

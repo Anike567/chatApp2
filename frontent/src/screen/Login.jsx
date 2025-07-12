@@ -49,10 +49,11 @@ export default function Login() {
     if (!socket) return;
 
     const handleLoginSuccessEvent = (data) => {
-      console.log('Login Success:', data);
+      
       const authData = {
         isLoggedIn: true,
-        user: data.message.user
+        user: data.message.user,
+        token : data.message.signedToken
       }
 
       setAuthData(authData);
@@ -68,7 +69,6 @@ export default function Login() {
 
     const handleLoginMessageEvent = (data) => {
       const msg = typeof data.message === 'string' ? data.message : 'Something went wrong';
-      console.log('Login Message:', msg);
       setMessage(msg);
       setLoading(false);
     };

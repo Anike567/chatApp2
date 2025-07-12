@@ -8,7 +8,7 @@ import { AuthContext } from '../store/authContext';
 
 
 export default function Home() {
-    const loggedInUser = useContext(AuthContext).authData.user;
+    const {user,token} = useContext(AuthContext).authData;
     const [isLoading, setLoading] = useState(true);
     const [userList, setUserList] = useState([]);
     const [selectedUser, setSelectedUser] = useState(null);
@@ -16,16 +16,6 @@ export default function Home() {
 
     const { socket } = useContext(SocketContext);
 
-    const fetchUser = async () => {
-        try {
-            const res = await axios.get('http://localhost:3000/users/')
-            const users = res.data;
-            setUserList(users.message.users)
-            setLoading(false)
-        } catch (err) {
-            console.error('Error fetching users:', err)
-        }
-    }
 
     const handleSend = (e) => {
         if (e.key === 'Enter') {
@@ -36,15 +26,20 @@ export default function Home() {
         }
     }
 
-    useEffect(()=>{
+    useEffect(() => {
+
+        socket.emit('getuser',{token : token},(res)=>{
+            setUserList(res.message.users)
+            setLoading(false)
+        });
+
+
         socket.on('message-received',(data)=>{
             console.log(data);
-        })
-    },[])
+        });
 
-    useEffect(() => {
-        fetchUser()
-    }, [])
+        
+    }, [socket])
 
     if (isLoading) {
         return <Loader />
@@ -57,7 +52,7 @@ export default function Home() {
                 {userList.map((user, index) => (
                     <div
                         key={index}
-                        onClick={() => setSelectedUser(loggedInUser)}
+                        onClick={() => setSelectedUser(user)}
                         className="bg-blue-300 my-3 p-4 rounded-lg flex items-center justify-center cursor-pointer hover:underline transition duration-200"
                     >
                         <p className="text-center font-medium">

@@ -9,6 +9,7 @@ export default function AuthContextProvider({ children }) {
   const [authData, setAuthData] = useState({
     isLoggedIn: false,
     user: null,
+    token:null,
   });
 
   useEffect(() => {

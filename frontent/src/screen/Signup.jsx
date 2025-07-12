@@ -6,6 +6,7 @@ import { FiX } from 'react-icons/fi';
 import { useNavigate,Link } from 'react-router-dom';
 
 
+
 export default function Signup() {
 
 
@@ -16,7 +17,10 @@ export default function Signup() {
 
     const [user, setUser] = useState({
         username: '',
-        password: ''
+        password: '',
+        name : '',
+        contact : '',
+        email : ''
     });
 
     const handleChange = (e) => {
@@ -34,8 +38,8 @@ export default function Signup() {
             console.warn('Socket not connected yet');
             return;
         }
-
-        socket.emit('loginEvent', user);
+        console.log(user);
+        socket.emit('signupEvent', user);
 
     };
 
@@ -43,25 +47,19 @@ export default function Signup() {
     useEffect(() => {
         if (!socket) return;
 
-        const handleLoginSuccessEvent = (data) => {
+        const handleSignupSuccessEvent = (data) => {
             console.log('Login Success:', data);
-            const authData = {
-                isLoggedIn: true,
-                user: data.message.user
-            }
-
-            setAuthData(authData);
-            localStorage.setItem('user-data', JSON.stringify(authData));
-            navigate('/')
+            navigate('/login')
             setLoading(false);
         };
 
-        const handleLoginErrorEvent = (data) => {
+        const handleSignupErrorEvent = (data) => {
             console.error('Login Error:', data);
             setLoading(false);
         };
 
-        const handleLoginMessageEvent = (data) => {
+        const handleSignupMessageEvent = (data) => {
+            console.log(data);
             const msg = typeof data.message === 'string' ? data.message : 'Something went wrong';
             console.log('Login Message:', msg);
             setMessage(msg);
@@ -69,14 +67,14 @@ export default function Signup() {
         };
 
 
-        socket.on('loginSuccessEvent', handleLoginSuccessEvent);
-        socket.on('loginErrorEvent', handleLoginErrorEvent);
-        socket.on('loginMessageEvent', handleLoginMessageEvent);
+        socket.on('signupSuccessEvent', handleSignupSuccessEvent);
+        socket.on('signupErrorEvent', handleSignupErrorEvent);
+        socket.on('signupMessageEvent', handleSignupMessageEvent);
 
         return () => {
-            socket.off('loginSuccessEvent', handleLoginSuccessEvent);
-            socket.off('loginErrorEvent', handleLoginErrorEvent);
-            socket.off('loginMessageEvent', handleLoginMessageEvent);
+            socket.off('signupSuccessEvent', handleSignupSuccessEvent);
+            socket.off('signupErrorEvent', handleSignupErrorEvent);
+            socket.off('signupMessageEvent', handleSignupMessageEvent);
         };
     }, [socket]);
 
@@ -84,7 +82,7 @@ export default function Signup() {
     return (
         <div className="flex h-screen w-screen justify-center items-center bg-blue-50">
             <div className="w-[90%] max-w-md bg-white shadow-xl rounded-xl p-8">
-                <h2 className="text-3xl font-bold text-center text-blue-600 mb-6">Login</h2>
+                <h2 className="text-3xl font-bold text-center text-blue-600 mb-6">Signup</h2>
 
                 <div className="mb-4">
                     <label className="block text-lg mb-2 text-gray-700">Username</label>
@@ -110,13 +108,49 @@ export default function Signup() {
                     />
                 </div>
 
+                <div className="mb-6">
+                    <label className="block text-lg mb-2 text-gray-700">Name</label>
+                    <input
+                        className="w-full p-3 border border-gray-300 text-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        type="text"
+                        name="name"
+                        value={user.name}
+                        placeholder="Enter Name"
+                        onChange={handleChange}
+                    />
+                </div>
+
+                <div className="mb-6">
+                    <label className="block text-lg mb-2 text-gray-700">Contact No.</label>
+                    <input
+                        className="w-full p-3 border border-gray-300 text-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        type="text"
+                        name="contact"
+                        value={user.contact}
+                        placeholder="Enter Contact No."
+                        onChange={handleChange}
+                    />
+                </div>
+
+                <div className="mb-6">
+                    <label className="block text-lg mb-2 text-gray-700">Email</label>
+                    <input
+                        className="w-full p-3 border border-gray-300 text-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        type="text"
+                        name="email"
+                        value={user.email}
+                        placeholder="Enter Email"
+                        onChange={handleChange}
+                    />
+                </div>
+
                 <div className="text-center">
                     {isLoading ? <Loader /> : <button
                         type="submit"
                         onClick={handleSubmit}
                         className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-6 py-3 rounded-md transition duration-300"
                     >
-                        Login
+                        Signup
                     </button>}
                 </div>
 

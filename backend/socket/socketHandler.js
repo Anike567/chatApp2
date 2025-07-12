@@ -1,50 +1,48 @@
-const connectionPool = require('./../config/connection');
+
+
+const getUserHandler = require('./getUserHandler');
+const loginHandler = require('./login');
+const signupHandler = require('./signup');
 
 const socketHandler = (io) => {
     io.on('connection', (socket) => {
-    
+
 
         socket.on('message-received', (data) => {
             socket.broadcast.emit('message-received', data);
         });
 
         socket.on('loginEvent', (user) => {
-            const query = 'SELECT * FROM users WHERE username = ?';
-
-            connectionPool.query(query, [user.username], (error, results) => {
-                if (error) {
-                    console.error('Query error:', error);
-                    return socket.emit('loginErrorEvent', {
-                        error: 'Internal Server Error',
-                    });
-                }
-
-                if (!results || results.length === 0) {
-                    return socket.emit('loginMessageEvent', {
-                        message: 'Username not found, please sign up',
-                    });
-                }
-
-                const dbUser = results[0];
-
-                if (dbUser.password !== user.password) {
-                    return socket.emit('loginMessageEvent', {
-                        message: 'Incorrect password',
-                    });
-                }
-
-                socket.emit('loginSuccessEvent', {
-                    message: {
-                        loggedIn: true,
-                        user: dbUser,
-                    }
-                });
-            });
+            loginHandler(user, socket);
         });
+
+
+
+        // signup event handler 
+
+        socket.on('signupEvent', (data) => { signupHandler(data, socket) });
+
+
+        socket.on('getuser', async (data, callback) => {
+            try {
+                const users = await getUserHandler(data, socket);
+
+                if (!users) {
+                    return callback({ message: { users: [] } });
+                }
+
+                callback({ message: { users } });
+            } catch (err) {
+                console.error(err);
+                callback({ message: { users: [], error: 'Internal server error' } });
+            }
+        });
+
 
         socket.on('disconnect', () => {
-            console.log(`User disconnected with socket ID: ${socket.id}`);
-        });
+            console.log(`${socket.id} is diconnected`);
+        })
+
     });
 };
 
