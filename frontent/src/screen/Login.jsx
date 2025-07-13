@@ -27,6 +27,8 @@ export default function Login() {
     }));
   };
 
+
+
   const handleSubmit = () => {
     setLoading(true);
 
@@ -35,12 +37,28 @@ export default function Login() {
       return;
     }
 
-    socket.emit('loginEvent', user);
+    socket.emit('loginEvent', user, (res) => {
+      if (res.isLoggedIn) {
+        const authData = {
+          isLoggedIn: true,
+          user: res.user,
+          token: res.token
+        }
 
+        setAuthData(authData);
+        localStorage.setItem('user-data', JSON.stringify(authData));
+        navigate('/');
+      }
+      if (res.message.length > 0) {
+        setMessage(res.message.join(','));
+      }
+      setLoading(false);
+    });
   };
 
-  useEffect(()=>{
-    if(authData.isLoggedIn){
+
+  useEffect(() => {
+    if (authData.isLoggedIn) {
       navigate('/');
     }
   })
@@ -49,11 +67,11 @@ export default function Login() {
     if (!socket) return;
 
     const handleLoginSuccessEvent = (data) => {
-      
+
       const authData = {
         isLoggedIn: true,
         user: data.message.user,
-        token : data.message.signedToken
+        token: data.message.signedToken
       }
 
       setAuthData(authData);

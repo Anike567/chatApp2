@@ -1,26 +1,28 @@
+const connectionPool = require("../config/connection");
 const verifyToken = require("../utility/verifyToken");
 
 const getUserHandler = async (data, socket) => {
     const { token } = data;
-    const isTokenValid = verifyToken(token);
 
-    if (isTokenValid) {
-        try {
+    try {
+        const decoded = verifyToken(token); // should return user info or throw error
 
-            const response = await fetch('https://randomuser.me/api/?results=50');
-            const users = await response.json();
-            return users.results;
-        } catch (error) {
-            console.error(error);
-            res.status(500).json({
-                status: false,
-                message: error.message
+        return new Promise((resolve, reject) => {
+            const query = `SELECT * FROM users`;
+
+            connectionPool.query(query, (err, results) => {
+                if (err) {
+                    console.error("DB Error:", err);
+                    return resolve(null); // Return null so caller knows token is valid but DB failed
+                }
+                return resolve(results); // Return list of users
             });
-        }
+        });
+
+    } catch (error) {
+        console.error("Token verification failed:", error.message);
+        return null; // Invalid token, return null to trigger tokenExpiredEvent
     }
-
-
-
-}
+};
 
 module.exports = getUserHandler;
