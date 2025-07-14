@@ -5,7 +5,7 @@ const getUserHandler = async (data, socket) => {
     const { token } = data;
 
     try {
-        const decoded = verifyToken(token); // should return user info or throw error
+        const decoded = verifyToken(token); 
 
         return new Promise((resolve, reject) => {
             const query = `SELECT * FROM users`;
@@ -13,15 +13,15 @@ const getUserHandler = async (data, socket) => {
             connectionPool.query(query, (err, results) => {
                 if (err) {
                     console.error("DB Error:", err);
-                    return resolve(null); // Return null so caller knows token is valid but DB failed
+                    return resolve(null); 
                 }
-                return resolve(results); // Return list of users
+                return resolve(results); 
             });
         });
 
     } catch (error) {
         console.error("Token verification failed:", error.message);
-        return null; // Invalid token, return null to trigger tokenExpiredEvent
+        return null; 
     }
 };
 

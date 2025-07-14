@@ -2,6 +2,7 @@ const redis = require('../config/redis');
 const getUserHandler = require('./getUserHandler');
 const loginHandler = require('./login');
 const signupHandler = require('./signup');
+const connectionPool = require('./../config/connection');
 
 const socketHandler = (io) => {
     io.on('connection', (socket) => {
@@ -12,6 +13,22 @@ const socketHandler = (io) => {
             redis.set(`socket:${socket.id}`, userId);
         });
 
+        socket.on('getMessages', (data, callback) => {
+            const {from, to} = data;
+            const query = `
+                            SELECT * FROM message 
+                            WHERE (\`from\` = ? AND \`to\` = ?) 
+                                OR (\`from\` = ? AND \`to\` = ?)
+                            `;
+
+            connectionPool.query(query, [from, to, to, from], (error, results) => {
+                if (error) {
+                    console.error(error);
+                } else {
+                    callback(results);
+                }
+            });
+        });
 
         socket.on('message-received', async (data) => {
             try {
@@ -57,7 +74,7 @@ const socketHandler = (io) => {
 
 
         socket.on('disconnect', async () => {
-            console.log(`${socket.id } get disconnected`);
+            console.log(`${socket.id} get disconnected`);
             const userId = await redis.get(`socket:${socket.id}`);
             if (userId) {
                 await redis.del(userId);
