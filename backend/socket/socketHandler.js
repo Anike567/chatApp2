@@ -14,7 +14,7 @@ const socketHandler = (io) => {
         });
 
         socket.on('getMessages', (data, callback) => {
-            const {from, to} = data;
+            const { from, to } = data;
             const query = `
                             SELECT * FROM message 
                             WHERE (\`from\` = ? AND \`to\` = ?) 
@@ -25,10 +25,31 @@ const socketHandler = (io) => {
                 if (error) {
                     console.error(error);
                 } else {
+                    console.log
                     callback(results);
                 }
             });
         });
+
+        socket.on('saveMessage', (data) => {
+            //         const messages = data.map((m) => [m.to, m.from, m.message]);
+
+            //         // You can now use this to bulk insert into MySQL
+            //         const sql = `
+            //     INSERT IGNORE INTO message (\`to\`, \`from\`, message)
+            //     VALUES ?
+            // `;
+            //         db.query(sql, [messages], (err, result) => {
+            //             if (err) {
+            //                 console.error('Error inserting messages:', err);
+            //             } else {
+            //                 console.log('Inserted messages:', result.affectedRows);
+            //             }
+            //         });
+
+            console.log(data);
+        });
+
 
         socket.on('message-received', async (data) => {
             try {

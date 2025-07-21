@@ -15,10 +15,21 @@ export default function Home() {
     const [selectedUser, setSelectedUser] = useState(null);
     const [message, setMessage] = useState("");
     const [messageList, setMessageList] = useState([]);
+    const [unsavedMessages, setUnsavedMessages] = useState([]); 
     const messageEndRef = useRef(null); // for auto-scroll
 
     const scrollToBottom = () => {
         messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
+
+    const saveMessage = () => {
+        console.log(unsavedMessages);
+        socket.emit('saveMessage',unsavedMessages);
+        // if (unsavedMessages.length > 0) {
+        //     socket.emit('saveMessage', unsavedMessages);
+        //     console.log(unsavedMessages);
+        //     setUnsavedMessages([]); 
+        // }
     };
 
     const getMessagesForUser = (otherUserId) => {
@@ -41,6 +52,8 @@ export default function Home() {
                 message,
             };
 
+            setMessageList((prev) => [...prev, msgPayload]);
+            setUnsavedMessages((prev) => [...prev, msgPayload]); 
             socket.emit("message-received", msgPayload);
             setMessage(""); // clear input
         }
@@ -48,6 +61,7 @@ export default function Home() {
 
     useEffect(() => {
         if (!socket) return;
+
 
         // Fetch user list
         socket.emit('getuser', { token }, (res) => {
@@ -58,9 +72,8 @@ export default function Home() {
         // Sync socket ID
         socket.emit('updateSocketId', { userId: user._id, socketid: socketId });
 
-        // Listen for incoming messages
+        // Listen for new messages
         socket.on('message-received', (data) => {
-            // Only push if it's part of the current conversation
             if (
                 selectedUser &&
                 ((data.from === selectedUser._id && data.to === user._id) ||
@@ -72,6 +85,8 @@ export default function Home() {
 
         return () => {
             socket.off('message-received');
+          
+            saveMessage();
         };
     }, [socket, selectedUser]);
 
