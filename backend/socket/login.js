@@ -49,7 +49,7 @@ const loginHandler = async (user, socket, callback) => {
 
             if (isMatch) {
                 const token = jwt.sign({ ...dbUser }, process.env.JWT_SECRET, {
-                    expiresIn: '1h',
+                    
                 });
 
                 res.token = token;

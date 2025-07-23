@@ -6,9 +6,9 @@ export default function Layout() {
   return (
     <div className="h-screen w-screen flex flex-col">
       {/* Header with fixed height */}
-      <header className="h-20 flex-shrink-0">
+      {/* <header className="h-20 flex-shrink-0">
         <Navbar />
-      </header>
+      </header> */}
 
       {/* Main area that takes remaining height and allows scrolling */}
       <main className="flex-1 overflow-y-auto">
