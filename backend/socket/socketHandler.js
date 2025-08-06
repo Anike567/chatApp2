@@ -8,9 +8,11 @@ const socketHandler = (io) => {
     io.on('connection', (socket) => {
 
         socket.on('updateSocketId', (data) => {
+            
             const { userId, socketid } = data;
+            console.log(socketid, socketid);
             redis.set(userId, socketid);
-            redis.set(`socket:${socket.id}`, userId);
+            redis.set(socket.id, userId);
         });
 
         socket.on('getMessages', (data, callback) => {
@@ -96,10 +98,10 @@ const socketHandler = (io) => {
 
         socket.on('disconnect', async () => {
             console.log(`${socket.id} get disconnected`);
-            const userId = await redis.get(`socket:${socket.id}`);
+            const userId = await redis.get(socket.id);
             if (userId) {
                 await redis.del(userId);
-                await redis.del(`socket:${socket.id}`);
+                await redis.del(socket.id);
             }
         });
 

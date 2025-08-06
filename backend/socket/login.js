@@ -26,7 +26,7 @@ const loginHandler = async (user, socket, callback) => {
 
     }
 
-    // ✅ Do NOT take `callback` inside the query function
+    
     connectionPool.query(query, [username], async (error, results) => {
 
 
@@ -34,12 +34,12 @@ const loginHandler = async (user, socket, callback) => {
             console.error('Query error:', error);
             res.error = true;
             res.message.push('Internal Server Error please try again later');
-            return callback(res); // ✅ Use the correct callback here
+            return callback(res); 
         }
 
         if (!results || results.length === 0) {
             res.message.push('Username not found, Signup first');
-            return callback(res); // ✅ Use the correct callback here
+            return callback(res); 
         }
 
         const dbUser = results[0];

@@ -3,12 +3,11 @@ import Loader from '../components/Loader';
 import { FiPhoneCall, FiSend, FiUser, FiVideo } from 'react-icons/fi';
 import { SocketContext } from '../store/socketIdContext';
 import { AuthContext } from '../store/authContext';
-import { useNavigate } from 'react-router-dom';
+
 
 export default function Home() {
     const { user, token } = useContext(AuthContext).authData;
     const { socket, socketId } = useContext(SocketContext);
-    const navigate = useNavigate();
 
     const [isLoading, setLoading] = useState(true);
     const [userList, setUserList] = useState([]);
