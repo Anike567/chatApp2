@@ -97,11 +97,12 @@ const socketHandler = (io) => {
 
 
         socket.on('disconnect', async () => {
-            console.log(`${socket.id} get disconnected`);
+            
             const userId = await redis.get(socket.id);
             if (userId) {
                 await redis.del(userId);
                 await redis.del(socket.id);
+		
             }
         });
 
