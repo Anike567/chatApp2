@@ -9,6 +9,7 @@ import { AuthContext } from "../store/authContext";
  * @returns {JSX.Element}
  */
 export default function Home() {
+  const allMessages = useRef([]);
   const { user, token } = useContext(AuthContext).authData;
   const { socket, socketId } = useContext(SocketContext);
 
@@ -20,6 +21,22 @@ export default function Home() {
   const [messageList, setMessageList] = useState([]);
   const [unreadCounts, setUnreadCounts] = useState({});
   const messageEndRef = useRef(null);
+
+  /**
+   * Update selected conversation messages
+   * @returns {void}
+   */
+  const updateSelectedMessageList = () => {
+    if (!selectedUser) return;
+    setMessageList(
+      allMessages.current.filter(
+        (msg) =>
+          (msg.from === user._id && msg.to === selectedUser._id) ||
+          (msg.from === selectedUser._id && msg.to === user._id)
+      )
+
+    );
+  };
 
   /**
    * Scroll chat to the latest message
@@ -67,16 +84,26 @@ export default function Home() {
         message,
       };
 
-      setMessageList((prev) => [...prev, msgPayload]);
+      allMessages.current.push(msgPayload);
+      updateSelectedMessageList();
+      localStorage.setItem("messages", JSON.stringify(allMessages.current));
       socket.emit("message-received", msgPayload);
       setMessage("");
     }
   };
 
   // Setup socket listeners and fetch initial data
+
+  // useEffect(() => {
+    
+  // }, [selectedUser]);
+
   useEffect(() => {
     if (!socket) return;
 
+    if (selectedUser) {
+      getMessagesForUser(selectedUser._id);
+    }
     socket.emit("getuser", { token }, (res) => {
       setUserList(res.message.users);
       setLoading(false);
@@ -85,19 +112,11 @@ export default function Home() {
     socket.emit("updateSocketId", { userId: user._id, socketid: socketId });
 
     const handleIncomingMessage = (data) => {
-      if (
-        selectedUser &&
-        ((data.from === selectedUser._id && data.to === user._id) ||
-          (data.from === user._id && data.to === selectedUser._id))
-      ) {
-        // Message for current chat
-        setMessageList((prev) => [...prev, data]);
-      } else {
-        // Increment unread count for sender
-        setUnreadCounts((prev) => ({
-          ...prev,
-          [data.from]: (prev[data.from] || 0) + 1,
-        }));
+      allMessages.current.push(data);
+      localStorage.setItem("messages", JSON.stringify(allMessages.current));
+      
+      if(selectedUser){
+        updateSelectedMessageList();
       }
     };
 
@@ -108,9 +127,16 @@ export default function Home() {
     };
   }, [socket, selectedUser, token, user._id, socketId]);
 
+  // Auto-scroll on new messages
   useEffect(() => {
     scrollToBottom();
   }, [messageList]);
+
+  // Load stored messages once on mount
+  useEffect(() => {
+    const stored = localStorage.getItem("messages");
+    allMessages.current = stored ? JSON.parse(stored) : [];
+  }, []);
 
   if (isLoading) {
     return (
@@ -146,7 +172,7 @@ export default function Home() {
                   key={index}
                   onClick={() => {
                     setSelectedUser(tmpUser);
-                    getMessagesForUser(tmpUser._id);
+                    
                   }}
                   className="flex items-center space-x-4 p-4 cursor-pointer hover:bg-blue-100 transition duration-200"
                 >
@@ -182,7 +208,11 @@ export default function Home() {
                 </p>
               </div>
               <div className="flex space-x-6">
-                <FiPhoneCall size={30} color="black" className="cursor-pointer" />
+                <FiPhoneCall
+                  size={30}
+                  color="black"
+                  className="cursor-pointer"
+                />
                 <FiVideo size={30} color="black" className="cursor-pointer" />
               </div>
             </div>
@@ -192,11 +222,10 @@ export default function Home() {
               {messageList.map((msg, index) => (
                 <div key={index} className="w-full flex">
                   <div
-                    className={`px-4 py-2 my-2 rounded-xl shadow-md break-words max-w-[75%] ${
-                      msg.from === user._id
-                        ? "ml-auto bg-green-600 text-white"
-                        : "mr-auto bg-blue-600 text-white"
-                    }`}
+                    className={`px-4 py-2 my-2 rounded-xl shadow-md break-words max-w-[75%] ${msg.from === user._id
+                      ? "ml-auto bg-green-600 text-white"
+                      : "mr-auto bg-blue-600 text-white"
+                      }`}
                   >
                     <p className="text-sm">{msg.message}</p>
                   </div>

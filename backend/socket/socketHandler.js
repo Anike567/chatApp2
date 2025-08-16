@@ -77,6 +77,12 @@ const socketHandler = (io) => {
 
         socket.on('signupEvent', (data) => { signupHandler(data, socket) });
 
+        /**
+         * @description this will fetch all the users from database
+         
+         * @returns {[Users]}
+         */
+
         socket.on('getuser', async (data, callback) => {
             try {
                 const users = await getUserHandler(data, socket);
@@ -95,7 +101,11 @@ const socketHandler = (io) => {
 
 
 
-
+        /**
+         * @description handle cleanup 
+         * @returns {void}
+         * @parama {null}
+         */
         socket.on('disconnect', async () => {
             
             const userId = await redis.get(socket.id);
