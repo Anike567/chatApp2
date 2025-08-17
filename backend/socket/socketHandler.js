@@ -53,10 +53,11 @@ const socketHandler = (io) => {
         });
 
 
-        socket.on('message-received', async (data) => {
+        socket.on('message-received', async (data,cb) => {
             try {
                 const socketId = await redis.get(data.to);
                 if (socketId) {
+                    cb(true);
                     io.to(socketId).emit('message-received', data);
                 } else {
                     console.warn(`No socket ID found for user ${data.to}`);

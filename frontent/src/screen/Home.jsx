@@ -1,8 +1,12 @@
+
+import {BiCheckDouble} from "react-icons/bi";
+
 import { useContext, useEffect, useRef, useState } from "react";
 import Loader from "../components/Loader";
 import { FiPhoneCall, FiSend, FiUser, FiVideo } from "react-icons/fi";
 import { SocketContext } from "../store/socketIdContext";
 import { AuthContext } from "../store/authContext";
+
 
 /**
  * Home chat component
@@ -74,20 +78,27 @@ export default function Home() {
    * @param {KeyboardEvent | MouseEvent} e
    * @returns {void}
    */
-  const handleSend = (e) => {
+  const handleSend = async (e) => {
     if (e.key === "Enter" || e.type === "click") {
       if (!message.trim() || !selectedUser) return;
 
       const msgPayload = {
         to: selectedUser._id,
         from: user._id,
+        deleiverd: false,
         message,
       };
 
+
+      await socket.emit("message-received", msgPayload, (deleivered) => {
+        console.log(deleivered);
+        if (deleivered) {
+          msgPayload.deleiverd = true;
+        }
+      });
       allMessages.current.push(msgPayload);
       updateSelectedMessageList();
       localStorage.setItem("messages", JSON.stringify(allMessages.current));
-      socket.emit("message-received", msgPayload);
       setMessage("");
     }
   };
@@ -95,7 +106,7 @@ export default function Home() {
   // Setup socket listeners and fetch initial data
 
   // useEffect(() => {
-    
+
   // }, [selectedUser]);
 
   useEffect(() => {
@@ -114,8 +125,8 @@ export default function Home() {
     const handleIncomingMessage = (data) => {
       allMessages.current.push(data);
       localStorage.setItem("messages", JSON.stringify(allMessages.current));
-      
-      if(selectedUser){
+
+      if (selectedUser) {
         updateSelectedMessageList();
       }
     };
@@ -172,7 +183,7 @@ export default function Home() {
                   key={index}
                   onClick={() => {
                     setSelectedUser(tmpUser);
-                    
+
                   }}
                   className="flex items-center space-x-4 p-4 cursor-pointer hover:bg-blue-100 transition duration-200"
                 >
@@ -218,21 +229,31 @@ export default function Home() {
             </div>
 
             {/* Messages */}
+           
+
             <div className="flex-1 p-6 overflow-auto space-y-3">
               {messageList.map((msg, index) => (
                 <div key={index} className="w-full flex">
                   <div
-                    className={`px-4 py-2 my-2 rounded-xl shadow-md break-words max-w-[75%] ${msg.from === user._id
-                      ? "ml-auto bg-green-600 text-white"
-                      : "mr-auto bg-blue-600 text-white"
+                    className={`relative px-4 py-2 my-2 rounded-xl shadow-md break-words max-w-[75%] ${msg.from === user._id
+                        ? "ml-auto bg-green-600 text-white"
+                        : "mr-auto bg-blue-600 text-white"
                       }`}
                   >
                     <p className="text-sm">{msg.message}</p>
+
+                    {/* ✅ Show double tick only if delivered and msg is sent by the user */}
+                    {msg.from === user._id && msg.deleiverd && (
+                      <span  className="absolute bottom-1 right-2 text-xs text-gray-200 flex items-center">
+                        <BiCheckDouble color="black" size={16} />
+                      </span>
+                    )}
                   </div>
                 </div>
               ))}
               <div ref={messageEndRef}></div>
             </div>
+
 
             {/* Input */}
             <div className="p-5 border-t bg-white">
