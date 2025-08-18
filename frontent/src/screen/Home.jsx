@@ -1,11 +1,11 @@
 
 import { BiCheckDouble } from "react-icons/bi";
-
-import { use, useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import Loader from "../components/Loader";
 import { FiPhoneCall, FiSend, FiUser, FiVideo } from "react-icons/fi";
 import { SocketContext } from "../store/socketIdContext";
 import { AuthContext } from "../store/authContext";
+import { FaCheck} from "react-icons/fa";
 
 
 
@@ -79,7 +79,7 @@ export default function Home() {
       const msgPayload = {
         to: selectedUser._id,
         from: user._id,
-        deleiverd: false,
+        deleiverd: null,
         message,
       };
 
@@ -87,13 +87,20 @@ export default function Home() {
       await socket.emit("message-received", msgPayload, (deleivered) => {
         console.log(deleivered);
         if (deleivered) {
-          msgPayload.deleiverd = true;
+          msgPayload.deleiverd = 'delievered';
+
+
         }
+        else {
+          msgPayload.deleiverd = 'pending'
+        }
+        allMessages.current.push(msgPayload);
+
+        updateSelectedMessageList();
+        localStorage.setItem("messages", JSON.stringify(allMessages.current));
+        setMessage("");
       });
-      allMessages.current.push(msgPayload);
-      updateSelectedMessageList();
-      localStorage.setItem("messages", JSON.stringify(allMessages.current));
-      setMessage("");
+
     }
   };
 
@@ -206,7 +213,7 @@ export default function Home() {
                   <div className="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center">
                     <FiUser size={24} className="text-gray-700" />
                   </div>
-                  <p className="text-md font-medium text-gray-800">
+                  <p className="text-lg font-medium text-gray-800">
                     {tmpUser.name}
                   </p>
                   {unreadCounts[tmpUser._id] > 0 && (
@@ -256,14 +263,11 @@ export default function Home() {
                       : "mr-auto bg-blue-600 text-white"
                       }`}
                   >
-                    <p className="text-sm">{msg.message}</p>
+                    <p className="text-lg mb-2 ">{msg.message}</p>
+                    {msg.from === user._id && <span className="absolute  bottom-0 right-2 text-xs text-gray-200 flex items-center">
+                      {msg.deleiverd === 'pending' ? <FaCheck size={15} /> : <BiCheckDouble size={25} />}
+                    </span>}
 
-                    {/* ✅ Show double tick only if delivered and msg is sent by the user */}
-                    {msg.from === user._id && msg.deleiverd && (
-                      <span className="absolute bottom-1 right-2 text-xs text-gray-200 flex items-center">
-                        <BiCheckDouble color="black" size={16} />
-                      </span>
-                    )}
                   </div>
                 </div>
               ))}

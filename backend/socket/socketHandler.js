@@ -60,6 +60,7 @@ const socketHandler = (io) => {
                     cb(true);
                     io.to(socketId).emit('message-received', data);
                 } else {
+                    cb(false);
                     console.warn(`No socket ID found for user ${data.to}`);
                 }
             } catch (error) {
