@@ -3,6 +3,7 @@ const getUserHandler = require('./getUserHandler');
 const loginHandler = require('./login');
 const signupHandler = require('./signup');
 const connectionPool = require('./../config/connection');
+const searchHandler = require("./searchhHandler");
 
 const socketHandler = (io) => {
     io.on('connection', (socket) => {
@@ -10,7 +11,6 @@ const socketHandler = (io) => {
         socket.on('updateSocketId', (data) => {
             
             const { userId, socketid } = data;
-            console.log(socketid, socketid);
             redis.set(userId, socketid);
             redis.set(socket.id, userId);
         });
@@ -100,6 +100,11 @@ const socketHandler = (io) => {
             }
         });
 
+        // search for username 
+
+        socket.on("search", (data, cb)=>{
+            searchHandler(data, cb);
+        });
 
 
         /**

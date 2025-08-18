@@ -1,11 +1,12 @@
 
-import {BiCheckDouble} from "react-icons/bi";
+import { BiCheckDouble } from "react-icons/bi";
 
-import { useContext, useEffect, useRef, useState } from "react";
+import { use, useContext, useEffect, useRef, useState } from "react";
 import Loader from "../components/Loader";
 import { FiPhoneCall, FiSend, FiUser, FiVideo } from "react-icons/fi";
 import { SocketContext } from "../store/socketIdContext";
 import { AuthContext } from "../store/authContext";
+
 
 
 /**
@@ -25,6 +26,8 @@ export default function Home() {
   const [messageList, setMessageList] = useState([]);
   const [unreadCounts, setUnreadCounts] = useState({});
   const messageEndRef = useRef(null);
+
+  const [searchRsult, setSearchResult] = useState([]);
 
   /**
    * Update selected conversation messages
@@ -54,24 +57,15 @@ export default function Home() {
   useEffect(() => {
     const timer = setTimeout(() => {
       if (searchText.trim()) {
-        console.log(searchText);
+        socket.emit("search", searchText.trim(), (result) => {
+          setSearchResult(result);
+        });
       }
     }, 500);
     return () => clearTimeout(timer);
   }, [searchText]);
 
-  /**
-   * Fetch messages for a user and reset unread count
-   * @param {string} otherUserId - ID of the user to fetch messages for
-   * @returns {void}
-   */
-  const getMessagesForUser = (otherUserId) => {
-    const data = { from: user._id, to: otherUserId };
-    socket.emit("getMessages", data, (res) => {
-      setMessageList(res || []);
-      setUnreadCounts((prev) => ({ ...prev, [otherUserId]: 0 }));
-    });
-  };
+
 
   /**
    * Send a message via socket
@@ -103,18 +97,20 @@ export default function Home() {
     }
   };
 
-  // Setup socket listeners and fetch initial data
+  //Setup socket listeners and fetch initial data
 
-  // useEffect(() => {
+  useEffect(() => {
 
-  // }, [selectedUser]);
+    if (selectedUser) {
+      updateSelectedMessageList();
+    }
+
+  }, [selectedUser]);
 
   useEffect(() => {
     if (!socket) return;
 
-    if (selectedUser) {
-      getMessagesForUser(selectedUser._id);
-    }
+
     socket.emit("getuser", { token }, (res) => {
       setUserList(res.message.users);
       setLoading(false);
@@ -125,10 +121,8 @@ export default function Home() {
     const handleIncomingMessage = (data) => {
       allMessages.current.push(data);
       localStorage.setItem("messages", JSON.stringify(allMessages.current));
+      updateSelectedMessageList();
 
-      if (selectedUser) {
-        updateSelectedMessageList();
-      }
     };
 
     socket.on("message-received", handleIncomingMessage);
@@ -165,13 +159,35 @@ export default function Home() {
           {/* Header */}
           <div className="p-5 border-b bg-white shadow-sm">
             <h1 className="text-2xl font-bold text-gray-800 mb-4">Messages</h1>
-            <input
-              onChange={(e) => setSearchText(e.target.value)}
-              value={searchText}
-              type="text"
-              placeholder="Search by email or username"
-              className="w-full px-3 py-2 border rounded-lg text-black focus:outline-none"
-            />
+            <div className="relative">
+              <input
+                onChange={(e) => setSearchText(e.target.value)}
+                value={searchText}
+                type="text"
+                placeholder="Search by email or username"
+                className="w-full px-3 py-2 border rounded-lg text-black focus:outline-none"
+              />
+
+              {/* 🔽 Popup Dropdown */}
+              {searchText.trim() && searchRsult.length > 0 && (
+                <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-lg shadow-lg mt-1 max-h-60 overflow-auto">
+                  {searchRsult.map((result, index) => (
+                    <div
+                      key={index}
+                      onClick={() => {
+                        setSelectedUser(result);
+                        setSearchText(""); // close popup after selecting
+                      }}
+                      className="p-3 cursor-pointer hover:bg-gray-100 transition"
+                    >
+                      <p className="text-gray-800 font-medium">{result.name}</p>
+                      <p className="text-gray-500 text-sm">{result.email}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
           </div>
 
           {/* User List */}
@@ -229,22 +245,22 @@ export default function Home() {
             </div>
 
             {/* Messages */}
-           
+
 
             <div className="flex-1 p-6 overflow-auto space-y-3">
               {messageList.map((msg, index) => (
                 <div key={index} className="w-full flex">
                   <div
                     className={`relative px-4 py-2 my-2 rounded-xl shadow-md break-words max-w-[75%] ${msg.from === user._id
-                        ? "ml-auto bg-green-600 text-white"
-                        : "mr-auto bg-blue-600 text-white"
+                      ? "ml-auto bg-green-600 text-white"
+                      : "mr-auto bg-blue-600 text-white"
                       }`}
                   >
                     <p className="text-sm">{msg.message}</p>
 
                     {/* ✅ Show double tick only if delivered and msg is sent by the user */}
                     {msg.from === user._id && msg.deleiverd && (
-                      <span  className="absolute bottom-1 right-2 text-xs text-gray-200 flex items-center">
+                      <span className="absolute bottom-1 right-2 text-xs text-gray-200 flex items-center">
                         <BiCheckDouble color="black" size={16} />
                       </span>
                     )}
