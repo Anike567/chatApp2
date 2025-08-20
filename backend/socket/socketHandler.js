@@ -1,20 +1,41 @@
-const redis = require('../config/redis');
+
 const getUserHandler = require('./getUserHandler');
 const loginHandler = require('./login');
 const signupHandler = require('./signup');
 const connectionPool = require('./../config/connection');
 const searchHandler = require("./searchhHandler");
 const saveOfflineMessage = require('./../utility/saveMessageForOfflineUser');
+const { master, getReplica } = require('./../config/redis');
 
 const socketHandler = (io) => {
     io.on('connection', (socket) => {
 
+
+
         socket.on('updateSocketId', (data) => {
-            
             const { userId, socketid } = data;
-            redis.set(userId, socketid);
-            redis.set(socket.id, userId);
+
+            master.set(userId, socketid);
+            master.set(socket.id, userId);
+
+            // try {
+            //     const qry = "SELECT * FROM offline_message WHERE `from` = ?";
+
+            //     connectionPool.query(qry, [userId], (err, results) => {
+            //         if (err) {
+            //             throw err;
+            //         }
+
+            //         console.log(results);
+                    
+            //         io.to(socketid).emit('message-received', results);
+            //     });
+            // }
+            // catch (err) {
+            //     console.log(err);
+            // }
         });
+
 
         socket.on('getMessages', (data, callback) => {
             const { from, to } = data;
@@ -34,29 +55,10 @@ const socketHandler = (io) => {
             });
         });
 
-        socket.on('saveMessage', (data) => {
-            //         const messages = data.map((m) => [m.to, m.from, m.message]);
 
-            //         // You can now use this to bulk insert into MySQL
-            //         const sql = `
-            //     INSERT IGNORE INTO message (\`to\`, \`from\`, message)
-            //     VALUES ?
-            // `;
-            //         db.query(sql, [messages], (err, result) => {
-            //             if (err) {
-            //                 console.error('Error inserting messages:', err);
-            //             } else {
-            //                 console.log('Inserted messages:', result.affectedRows);
-            //             }
-            //         });
-
-            console.log(data);
-        });
-
-
-        socket.on('message-received', async (data,cb) => {
+        socket.on('message-received', async (data, cb) => {
             try {
-                const socketId = await redis.get(data.to);
+                const socketId = await getReplica().get(data.to);
                 if (socketId) {
                     cb(true);
                     io.to(socketId).emit('message-received', data);
@@ -107,7 +109,7 @@ const socketHandler = (io) => {
 
         // search for username 
 
-        socket.on("search", (data, cb)=>{
+        socket.on("search", (data, cb) => {
             searchHandler(data, cb);
         });
 
@@ -118,12 +120,12 @@ const socketHandler = (io) => {
          * @parama {null}
          */
         socket.on('disconnect', async () => {
-            
-            const userId = await redis.get(socket.id);
+
+            const userId = await getReplica().get(socket.id);
             if (userId) {
-                await redis.del(userId);
-                await redis.del(socket.id);
-		
+                await master.del(userId);
+                await master.del(socket.id);
+
             }
         });
 
