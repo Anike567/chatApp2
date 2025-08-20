@@ -1,4 +1,4 @@
 const Redis = require('ioredis');
-const redis = new Redis(); // defaults to localhost:6379
+const redis = new Redis(); 
 
 module.exports = redis;

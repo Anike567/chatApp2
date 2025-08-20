@@ -17,7 +17,6 @@ export default function Home() {
   const allMessages = useRef([]);
   const { user, token } = useContext(AuthContext).authData;
   const { socket, socketId } = useContext(SocketContext);
-
   const [isLoading, setLoading] = useState(true);
   const [userList, setUserList] = useState([]);
   const [searchText, setSearchText] = useState("");

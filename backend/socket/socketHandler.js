@@ -4,6 +4,7 @@ const loginHandler = require('./login');
 const signupHandler = require('./signup');
 const connectionPool = require('./../config/connection');
 const searchHandler = require("./searchhHandler");
+const saveOfflineMessage = require('./../utility/saveMessageForOfflineUser');
 
 const socketHandler = (io) => {
     io.on('connection', (socket) => {
@@ -61,12 +62,15 @@ const socketHandler = (io) => {
                     io.to(socketId).emit('message-received', data);
                 } else {
                     cb(false);
-                    console.warn(`No socket ID found for user ${data.to}`);
+
+                    saveOfflineMessage(data);
                 }
             } catch (error) {
                 console.error('Redis error:', error);
             }
         });
+
+
         //login event handler
         socket.on('loginEvent', (user, callback) => {
 
