@@ -6,6 +6,7 @@ const connectionPool = require('./../config/connection');
 const searchHandler = require("./searchhHandler");
 const saveOfflineMessage = require('./../utility/saveMessageForOfflineUser');
 const { master, getReplica } = require('./../config/redis');
+const uploadFile = require('./fileHandler');
 
 const socketHandler = (io) => {
     io.on('connection', (socket) => {
@@ -112,6 +113,12 @@ const socketHandler = (io) => {
         socket.on("search", (data, cb) => {
             searchHandler(data, cb);
         });
+
+        // update profile picture
+
+        socket.on("file-upload",(data, cb)=>{
+            uploadFile(data, cb);
+        })
 
 
         /**

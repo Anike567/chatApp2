@@ -3,9 +3,12 @@ import { BiCheckDouble } from "react-icons/bi";
 import { useContext, useEffect, useRef, useState } from "react";
 import Loader from "../components/Loader";
 import { FiPhoneCall, FiSend, FiUser, FiVideo } from "react-icons/fi";
+import { HiDotsVertical } from "react-icons/hi";
 import { SocketContext } from "../store/socketIdContext";
 import { AuthContext } from "../store/authContext";
-import { FaCheck} from "react-icons/fa";
+import { FaCheck } from "react-icons/fa";
+import Modal from "./../components/Modal";
+import UpdateProfile from "../components/UpdateProfile";
 
 
 
@@ -24,6 +27,9 @@ export default function Home() {
   const [message, setMessage] = useState("");
   const [messageList, setMessageList] = useState([]);
   const [unreadCounts, setUnreadCounts] = useState({});
+  const [showSetting, setShowSetting] = useState(false);
+  const [settingOption, setSettingOption] = useState(null);
+  const [isOpen, setIsOpen] = useState(false);
   const messageEndRef = useRef(null);
 
   const [searchRsult, setSearchResult] = useState([]);
@@ -164,7 +170,11 @@ export default function Home() {
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="p-5 border-b bg-white shadow-sm">
-            <h1 className="text-2xl font-bold text-gray-800 mb-4">Messages</h1>
+            <div className="flex justify-between items-center px-4">
+              <h1 className="text-2xl font-bold text-gray-800 mb-4">Messages</h1>
+              <HiDotsVertical color="black" size={25} className="cursor-pointer" onClick={() => { setShowSetting((prev) => !prev) }} />
+            </div>
+
             <div className="relative">
               <input
                 onChange={(e) => setSearchText(e.target.value)}
@@ -174,7 +184,23 @@ export default function Home() {
                 className="w-full px-3 py-2 border rounded-lg text-black focus:outline-none"
               />
 
-              {/* 🔽 Popup Dropdown */}
+              {/**
+               * 
+               * popup for setting 
+               * options like upload dp, change dp , delete dp 
+               */}
+
+              {showSetting && (
+                <div className="absolute right-0 mt-2 p-5 bg-white shadow-lg rounded-lg p-2">
+                  <ul className="cursor-pointer">
+                    <li className="text-black" onClick={() => { setSettingOption(1); setIsOpen(true) }}>Change Profile Picture</li>
+                  </ul>
+                </div>
+              )}
+              {settingOption && (
+                <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}><UpdateProfile /></Modal>
+              )}
+
               {searchText.trim() && searchRsult.length > 0 && (
                 <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-lg shadow-lg mt-1 max-h-60 overflow-auto">
                   {searchRsult.map((result, index) => (
@@ -205,16 +231,29 @@ export default function Home() {
                   key={index}
                   onClick={() => {
                     setSelectedUser(tmpUser);
-
                   }}
                   className="flex items-center space-x-4 p-4 cursor-pointer hover:bg-blue-100 transition duration-200"
                 >
-                  <div className="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center">
-                    <FiUser size={24} className="text-gray-700" />
+                  <div className="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden">
+                    {tmpUser.dp ? (
+                      (() => {
+                        const blob = new Blob([tmpUser.dp], { type: "image/png" }); // ✅ wrap dp in []
+                        const url = URL.createObjectURL(blob);
+                        return (
+                          <img
+                            src={url}
+                            alt="user dp"
+                            className="w-full h-full object-cover"
+                          />
+                        );
+                      })()
+                    ) : (
+                      <FiUser size={24} className="text-gray-700" />
+                    )}
                   </div>
-                  <p className="text-lg font-medium text-gray-800">
-                    {tmpUser.name}
-                  </p>
+
+                  <p className="text-lg font-medium text-gray-800">{tmpUser.name}</p>
+
                   {unreadCounts[tmpUser._id] > 0 && (
                     <div className="bg-green-500 px-2 py-1 rounded text-sm text-black">
                       {unreadCounts[tmpUser._id]}
@@ -223,6 +262,7 @@ export default function Home() {
                 </div>
               ))}
           </div>
+
         </div>
       </div>
 
