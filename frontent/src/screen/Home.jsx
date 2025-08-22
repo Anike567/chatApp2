@@ -225,7 +225,7 @@ export default function Home() {
           {/* User List */}
           <div className="flex-1 overflow-auto">
             {userList
-              .filter((tmpUser) => tmpUser.email !== user.email)
+              // .filter((tmpUser) => tmpUser.email !== user.email)
               .map((tmpUser, index) => (
                 <div
                   key={index}
@@ -237,7 +237,7 @@ export default function Home() {
                   <div className="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden">
                     {tmpUser.dp ? (
                       (() => {
-                        const blob = new Blob([tmpUser.dp], { type: "image/png" }); // ✅ wrap dp in []
+                        const blob = new Blob([tmpUser.dp], { type: "image/png" }); 
                         const url = URL.createObjectURL(blob);
                         return (
                           <img
@@ -252,7 +252,7 @@ export default function Home() {
                     )}
                   </div>
 
-                  <p className="text-lg font-medium text-gray-800">{tmpUser.name}</p>
+                  <p className="text-lg font-medium text-gray-800">{tmpUser.email === user.email? "You" : tmpUser.name}</p>
 
                   {unreadCounts[tmpUser._id] > 0 && (
                     <div className="bg-green-500 px-2 py-1 rounded text-sm text-black">
