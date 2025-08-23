@@ -7,11 +7,10 @@ const searchHandler = require("./searchhHandler");
 const saveOfflineMessage = require('./../utility/saveMessageForOfflineUser');
 const { master, getReplica } = require('./../config/redis');
 const uploadFile = require('./fileHandler');
+const {findUsername, verifyOtp} = require('./forgetPassword');
 
 const socketHandler = (io) => {
     io.on('connection', (socket) => {
-
-
 
         socket.on('updateSocketId', (data) => {
             const { userId, socketid } = data;
@@ -82,6 +81,11 @@ const socketHandler = (io) => {
 
 
 
+        //forget Password section
+
+        socket.on('findUsername',(data, cb)=>{findUsername(data, cb)});
+
+        socket.on('verify-otp',(data, cb)=>{verifyOtp(data, cb)});
         // signup event handler 
 
         socket.on('signupEvent', (data) => { signupHandler(data, socket) });

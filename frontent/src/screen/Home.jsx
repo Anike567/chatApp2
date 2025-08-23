@@ -9,7 +9,7 @@ import { AuthContext } from "../store/authContext";
 import { FaCheck } from "react-icons/fa";
 import Modal from "./../components/Modal";
 import UpdateProfile from "../components/UpdateProfile";
-
+import ForgetPassword from "./ForgetPassword";
 
 
 /**
@@ -31,8 +31,18 @@ export default function Home() {
   const [settingOption, setSettingOption] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
   const messageEndRef = useRef(null);
-
   const [searchRsult, setSearchResult] = useState([]);
+  const [selected, setSelected] = useState(1);
+
+  const menuItems = [
+    { id: 1, label: "Change Profile Picture" },
+    { id: 2, label: "Change Password" },
+  ];
+
+  const settingComponents = {
+    1: <UpdateProfile />,
+    2: <ForgetPassword />
+  };
 
   /**
    * Update selected conversation messages
@@ -142,7 +152,7 @@ export default function Home() {
     return () => {
       socket.off("message-received", handleIncomingMessage);
     };
-  }, [socket, selectedUser, token, user._id, socketId]);
+  }, [socket, token, user._id, socketId]);
 
   // Auto-scroll on new messages
   useEffect(() => {
@@ -191,14 +201,33 @@ export default function Home() {
                */}
 
               {showSetting && (
-                <div className="absolute right-0 mt-2 p-5 bg-white shadow-lg rounded-lg p-2">
-                  <ul className="cursor-pointer">
-                    <li className="text-black" onClick={() => { setSettingOption(1); setIsOpen(true) }}>Change Profile Picture</li>
+                <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-md">
+                  <ul className="flex flex-col text-sm text-gray-700">
+                    {menuItems.map((item) => (
+                      <li
+                        key={item.id}
+                        className={`
+            px-4 py-3 cursor-pointer transition-all rounded-md text-lg text-bold
+            ${selected === item.id
+                            ? "bg-blue-500 text-white shadow-md"
+                            : "hover:bg-blue-50 hover:shadow-md hover:text-blue-600"
+                          }
+          `}
+                        onClick={() => {console.log(item.id); setSettingOption(item.id); setIsOpen(true) }}
+                        onMouseEnter={() => { setSelected(item.id) }}
+                      >
+                        {item.label}
+                      </li>
+                    ))}
                   </ul>
                 </div>
+
+
               )}
               {settingOption && (
-                <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}><UpdateProfile /></Modal>
+                <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
+                  {settingComponents[settingOption]}
+                </Modal>
               )}
 
               {searchText.trim() && searchRsult.length > 0 && (
@@ -237,7 +266,7 @@ export default function Home() {
                   <div className="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden">
                     {tmpUser.dp ? (
                       (() => {
-                        const blob = new Blob([tmpUser.dp], { type: "image/png" }); 
+                        const blob = new Blob([tmpUser.dp], { type: "image/png" });
                         const url = URL.createObjectURL(blob);
                         return (
                           <img
@@ -252,7 +281,7 @@ export default function Home() {
                     )}
                   </div>
 
-                  <p className="text-lg font-medium text-gray-800">{tmpUser.email === user.email? "You" : tmpUser.name}</p>
+                  <p className="text-lg font-medium text-gray-800">{tmpUser.email === user.email ? "You" : tmpUser.name}</p>
 
                   {unreadCounts[tmpUser._id] > 0 && (
                     <div className="bg-green-500 px-2 py-1 rounded text-sm text-black">

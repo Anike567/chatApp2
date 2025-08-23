@@ -8,6 +8,7 @@ const searchHandler = (username,cb)=>{
         }
 
         cb(results);
+        return;
     })
 }
 

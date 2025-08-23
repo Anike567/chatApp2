@@ -8,6 +8,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import SocketIdContextProvider from './store/socketIdContext';
 import AuthContextProvider from './store/authContext';
 import Signup from './screen/Signup';
+import ForgetPassword from './screen/ForgetPassword';
 
 function App() {
 
@@ -22,6 +23,7 @@ function App() {
               <Route path="home" element={<Home />} />
             </Route>
             <Route path="login" element={<Login />} />
+            <Route path="forgetpassword" element={<ForgetPassword />} />
             <Route path="signup" element={<Signup/>} />
           </Routes>
         </BrowserRouter>
