@@ -2,6 +2,7 @@ const connectionPool = require('./../config/connection');
 const generateOTP = require('./../utility/generateOtp');
 const { master } = require('./../config/redis');
 const hashPassword = require('../utility/hashPassword');
+const mailer = require('./../utility/mailer');
 
 const findUsername = (data, cb) => {
     const qry = "select * from users where username = ? or email = ?";
@@ -18,14 +19,22 @@ const findUsername = (data, cb) => {
             }
 
             const otp = generateOTP();
-            await master.set(`otp:${result[0]._id}`, otp);
+            const subject = "OTP to change password"
+            const mail = `Your OTP for reseting your password is ${otp}`
+            const sendMail = await mailer(otp, result[0].email, subject, mail);
 
-            cb({
+            if(sendMail){
+                await master.set(`otp:${result[0]._id}`, otp);    
+                cb({
                 error: false,
                 data: {
-                    otp: otp
+                    message : `OTP sent successfully to your email  ${result[0].email} `
                 }
             });
+            }
+            
+
+            
 
         });
     }

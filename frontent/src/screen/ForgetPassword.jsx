@@ -51,6 +51,10 @@ export default function ForgetPassword() {
                 setMessage(data.message);
             }
 
+            if(data.data.message){
+                setMessage(data.data.message);
+            }
+
             if(data.data){
                 setShowNewPassword(true);
 
