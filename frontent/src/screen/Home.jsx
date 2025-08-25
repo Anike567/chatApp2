@@ -44,6 +44,17 @@ export default function Home() {
     2: <ForgetPassword />
   };
 
+
+  /**
+   * this will create a new webrtch connection
+   */
+
+  const handlePhoneCall = async ()=>{
+    const pc = new RTCPeerConnection();
+
+    const stream = await navigator.mediaDevices({audio : true, video : false});
+  }
+
   /**
    * Update selected conversation messages
    * @returns {void}
@@ -152,7 +163,7 @@ export default function Home() {
     return () => {
       socket.off("message-received", handleIncomingMessage);
     };
-  }, [socket, token, user._id, socketId]);
+  }, [socket, token,selectedUser, user._id, socketId]);
 
   // Auto-scroll on new messages
   useEffect(() => {
@@ -314,6 +325,7 @@ export default function Home() {
                   size={30}
                   color="black"
                   className="cursor-pointer"
+                  onClick={handlePhoneCall}
                 />
                 <FiVideo size={30} color="black" className="cursor-pointer" />
               </div>

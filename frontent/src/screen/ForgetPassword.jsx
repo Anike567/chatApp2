@@ -179,11 +179,6 @@ export default function ForgetPassword() {
 
                 </div>}
 
-
-
-
-
-
                 {message && (
                     <div className="mt-4 relative bg-red-100 text-red-700 px-4 py-2 rounded-md shadow-sm">
                         <p className='w-full text-center mx-2'>{message}</p>
@@ -195,12 +190,7 @@ export default function ForgetPassword() {
                     </div>
                 )}
 
-
-
             </div>
-
-
-
         </div>
     );
 }
