@@ -8,6 +8,7 @@ const saveOfflineMessage = require('./../utility/saveMessageForOfflineUser');
 const { master, getReplica } = require('./../config/redis');
 const uploadFile = require('./fileHandler');
 const {findUsername, verifyOtp} = require('./forgetPassword');
+const {addFriend, findFriendRequest} = require('./addFriend');
 
 const socketHandler = (io) => {
     io.on('connection', (socket) => {
@@ -18,22 +19,6 @@ const socketHandler = (io) => {
             master.set(userId, socketid);
             master.set(socket.id, userId);
 
-            // try {
-            //     const qry = "SELECT * FROM offline_message WHERE `from` = ?";
-
-            //     connectionPool.query(qry, [userId], (err, results) => {
-            //         if (err) {
-            //             throw err;
-            //         }
-
-            //         console.log(results);
-                    
-            //         io.to(socketid).emit('message-received', results);
-            //     });
-            // }
-            // catch (err) {
-            //     console.log(err);
-            // }
         });
 
 
@@ -124,6 +109,18 @@ const socketHandler = (io) => {
             uploadFile(data, cb);
         })
 
+        //add friend 
+
+        socket.on("addFriend",(data,cb)=>{
+            addFriend(data, cb);
+        });
+
+
+        //find friendRequest
+
+        socket.on("getFriendRequestList",(data,cb)=>{
+            findFriendRequest(data, cb);
+        })
 
         /**
          * @description handle cleanup 

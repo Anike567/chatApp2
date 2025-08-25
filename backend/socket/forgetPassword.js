@@ -28,7 +28,7 @@ const findUsername = (data, cb) => {
                 cb({
                 error: false,
                 data: {
-                    message : `OTP sent successfully to your email  ${result[0].email} `
+                    message : `OTP sent successfully to your email ${result[0].email} `
                 }
             });
             }
