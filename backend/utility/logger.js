@@ -15,6 +15,14 @@ const prettyLogger = pino({
 
 const fileLogger = pino(logStream);
 
+/**
+ * 
+ * @param {void} 
+ * @argument{socket} 
+ * 
+ * log the details like ip method events and time and save it to server.log file to
+ */
+
 const logDetails = (socket) => {
   socket.onAny((event, ...args) => {
     const ip = socket.handshake.address;
@@ -24,13 +32,19 @@ const logDetails = (socket) => {
 
     const logLine = `Event received from client ${ip} | ${JSON.stringify(logObj)}`;
 
-    // Console logs (pretty)
     prettyLogger.info(logLine);
-
-    // File logs (string in the same format)
     fileLogger.info(logLine);
   });
 };
 
+/**
+ * flushes remaining logs before closing:
+ */
 
-module.exports = logDetails;
+const closeLoggerStream = () => {
+  logStream.end(() => {
+    console.log("Log stream closed.");
+  });
+};
+
+module.exports = {logDetails,closeLoggerStream};

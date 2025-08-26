@@ -9,7 +9,7 @@ const { master, getReplica } = require('./../config/redis');
 const uploadFile = require('./fileHandler');
 const { findUsername, verifyOtp } = require('./forgetPassword');
 const { addFriend, findFriendRequest } = require('./addFriend');
-const logDetails = require('../utility/logger');
+const {logDetails} = require('../utility/logger');
 
 const socketHandler = (io) => {
     io.on('connection', (socket) => {

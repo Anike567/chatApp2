@@ -7,6 +7,7 @@ const socketHandler = require('./socket/socketHandler.js');
 const path = require('path');
 const fs = require('fs');
 
+const{closeLoggerStream} = require('./utility/logger.js');
 
 
 
@@ -48,3 +49,19 @@ server.listen(3000, () => {
 });
 
 
+
+
+["SIGINT", "SIGTERM"].forEach(signal => {
+  process.on(signal, () => {
+    closeLoggerStream(); 
+
+    if (server) {
+      server.close(() => {
+        console.log(`Server closed successfully due to ${signal}`);
+        process.exit(0);
+      });
+    } else {
+      process.exit(0);
+    }
+  });
+});
