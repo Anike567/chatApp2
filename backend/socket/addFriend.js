@@ -16,12 +16,37 @@ const addFriend = (data, cb) => {
     });
 };
 
-findFriendRequest = (data, cb)=>{
-    console.log(data);
-    const qry = "select * from friend_requests where 'to' = ?";
-    connectionPool.query(qry,[data],(err, result)=>{
-        console.log(result);
-    })
-    cb({message : "working"});
-}
-module.exports = {addFriend,findFriendRequest};
+findFriendRequest = (data, cb) => {
+    console.log("findFriendRequest input:", data, typeof data);
+
+    let qry = "select `from` from friend_requests where `to` = ?";
+    connectionPool.query(qry, [data], (err, result) => {
+        if (err) {
+            console.error("MySQL Error:", err);
+            cb({ error: true, message: 'Something went wrong please try again later' });
+            return;
+        }
+
+        // Extract ids
+        const fromIds = result.map(r => r.from);
+        if (fromIds.length === 0) {
+            cb({ error: false, data: [] });
+            return;
+        }
+
+        qry = "select * from users where _id in (?)";
+        connectionPool.query(qry, [fromIds], (err, users) => {
+            if (err) {
+                console.error("MySQL Error:", err);
+                cb({ error: true, message: 'Something went wrong please try again later' });
+                return;
+            }
+
+            console.log(users); // ✅ correct variable
+            cb({ error: false, data: users });
+        });
+    });
+};
+
+
+module.exports = { addFriend, findFriendRequest };

@@ -7,17 +7,20 @@ const searchHandler = require("./searchhHandler");
 const saveOfflineMessage = require('./../utility/saveMessageForOfflineUser');
 const { master, getReplica } = require('./../config/redis');
 const uploadFile = require('./fileHandler');
-const {findUsername, verifyOtp} = require('./forgetPassword');
-const {addFriend, findFriendRequest} = require('./addFriend');
+const { findUsername, verifyOtp } = require('./forgetPassword');
+const { addFriend, findFriendRequest } = require('./addFriend');
+const logDetails = require('../utility/logger');
 
 const socketHandler = (io) => {
     io.on('connection', (socket) => {
+        logDetails(socket);
 
         socket.on('updateSocketId', (data) => {
             const { userId, socketid } = data;
 
             master.set(userId, socketid);
             master.set(socket.id, userId);
+
 
         });
 
@@ -68,9 +71,9 @@ const socketHandler = (io) => {
 
         //forget Password section
 
-        socket.on('findUsername',(data, cb)=>{findUsername(data, cb)});
+        socket.on('findUsername', (data, cb) => { findUsername(data, cb) });
 
-        socket.on('verify-otp',(data, cb)=>{verifyOtp(data, cb)});
+        socket.on('verify-otp', (data, cb) => { verifyOtp(data, cb) });
         // signup event handler 
 
         socket.on('signupEvent', (data) => { signupHandler(data, socket) });
@@ -97,6 +100,8 @@ const socketHandler = (io) => {
             }
         });
 
+
+
         // search for username 
 
         socket.on("search", (data, cb) => {
@@ -105,20 +110,20 @@ const socketHandler = (io) => {
 
         // update profile picture
 
-        socket.on("file-upload",(data, cb)=>{
+        socket.on("file-upload", (data, cb) => {
             uploadFile(data, cb);
         })
 
         //add friend 
 
-        socket.on("addFriend",(data,cb)=>{
+        socket.on("addFriend", (data, cb) => {
             addFriend(data, cb);
         });
 
 
         //find friendRequest
 
-        socket.on("getFriendRequestList",(data,cb)=>{
+        socket.on("getFriendRequestList", (data, cb) => {
             findFriendRequest(data, cb);
         })
 

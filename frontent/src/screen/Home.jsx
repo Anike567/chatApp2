@@ -1,5 +1,6 @@
 
 import { BiCheckDouble } from "react-icons/bi";
+import { FiUserPlus } from "react-icons/fi";
 import { useContext, useEffect, useRef, useState } from "react";
 import Loader from "../components/Loader";
 import { FiPhoneCall, FiSend, FiUser, FiVideo } from "react-icons/fi";
@@ -10,6 +11,8 @@ import { FaCheck } from "react-icons/fa";
 import Modal from "./../components/Modal";
 import UpdateProfile from "../components/UpdateProfile";
 import ForgetPassword from "./ForgetPassword";
+import { data } from "react-router-dom";
+import FriendRequests from "../components/FriendRequests";
 
 
 /**
@@ -37,22 +40,40 @@ export default function Home() {
   const menuItems = [
     { id: 1, label: "Change Profile Picture" },
     { id: 2, label: "Change Password" },
+    { id: 3, label: "Friend Requests" },
   ];
 
   const settingComponents = {
     1: <UpdateProfile />,
-    2: <ForgetPassword />
+    2: <ForgetPassword />,
+    3: <FriendRequests/>
   };
+
+
+  /**
+   * 
+   * send friend request to friend
+   */
+  const sendFrienRequest = (toId)=>{
+    console.log("working");
+    const payload = {
+      from : user._id,
+      to : toId
+    }
+    socket.emit("addFriend",payload,(data)=>{
+      console.log(data);
+    })
+  }
 
 
   /**
    * this will create a new webrtch connection
    */
 
-  const handlePhoneCall = async ()=>{
+  const handlePhoneCall = async () => {
     const pc = new RTCPeerConnection();
 
-    const stream = await navigator.mediaDevices({audio : true, video : false});
+    const stream = await navigator.mediaDevices({ audio: true, video: false });
   }
 
   /**
@@ -143,6 +164,7 @@ export default function Home() {
   useEffect(() => {
     if (!socket) return;
 
+    
 
     socket.emit("getuser", { token }, (res) => {
       setUserList(res.message.users);
@@ -163,7 +185,7 @@ export default function Home() {
     return () => {
       socket.off("message-received", handleIncomingMessage);
     };
-  }, [socket, token,selectedUser, user._id, socketId]);
+  }, [socket, token, selectedUser, user._id, socketId]);
 
   // Auto-scroll on new messages
   useEffect(() => {
@@ -224,7 +246,7 @@ export default function Home() {
                             : "hover:bg-blue-50 hover:shadow-md hover:text-blue-600"
                           }
           `}
-                        onClick={() => {console.log(item.id); setSettingOption(item.id); setIsOpen(true) }}
+                        onClick={() => { console.log(item.id); setSettingOption(item.id); setIsOpen(true) }}
                         onMouseEnter={() => { setSelected(item.id) }}
                       >
                         {item.label}
@@ -242,22 +264,51 @@ export default function Home() {
               )}
 
               {searchText.trim() && searchRsult.length > 0 && (
-                <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-lg shadow-lg mt-1 max-h-60 overflow-auto">
+                <div className="absolute z-100 w-full bg-white border border-gray-300 rounded-lg shadow-lg mt-1 max-h-60 overflow-auto">
                   {searchRsult.map((result, index) => (
                     <div
                       key={index}
-                      onClick={() => {
-                        setSelectedUser(result);
-                        setSearchText(""); // close popup after selecting
-                      }}
-                      className="p-3 cursor-pointer hover:bg-gray-100 transition"
+                      className="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-100 transition"
                     >
-                      <p className="text-gray-800 font-medium">{result.name}</p>
-                      <p className="text-gray-500 text-sm">{result.email}</p>
+                      {/* Left side: DP + user details */}
+                      <div className="flex items-center">
+                        <div className="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden">
+                          {result.dp ? (
+                            (() => {
+                              const blob = new Blob([result.dp], { type: "image/png" });
+                              const url = URL.createObjectURL(blob);
+                              return (
+                                <img
+                                  src={url}
+                                  alt="user dp"
+                                  className="w-full h-full object-cover"
+                                />
+                              );
+                            })()
+                          ) : (
+                            <FiUser size={24} className="text-gray-700" />
+                          )}
+                        </div>
+
+                        {/* Space between dp and text */}
+                        <div className="ml-3">
+                          <p className="text-gray-800 font-medium">{result.name}</p>
+                          <p className="text-gray-500 text-sm">{result.email}</p>
+                        </div>
+                      </div>
+
+                      {/* Friend request icon */}
+                      <FiUserPlus
+                        onClick={()=>{sendFrienRequest(result._id)}} 
+                        size={30}
+                        className="text-blue-500 hover:text-blue-700 cursor-pointer"
+                      />
                     </div>
                   ))}
                 </div>
               )}
+
+
             </div>
 
           </div>
