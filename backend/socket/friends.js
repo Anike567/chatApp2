@@ -1,5 +1,7 @@
 const connectionPool = require("../config/connection");
 
+
+
 const addFriend = (data, cb) => {
     console.log(data);
 
