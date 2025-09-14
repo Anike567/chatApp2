@@ -29,13 +29,14 @@ export default function Home() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [message, setMessage] = useState("");
   const [messageList, setMessageList] = useState([]);
-  const [unreadCounts, setUnreadCounts] = useState({});
   const [showSetting, setShowSetting] = useState(false);
   const [settingOption, setSettingOption] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
   const messageEndRef = useRef(null);
   const [searchRsult, setSearchResult] = useState([]);
+  const[unSavedMessage, setUnSavedMessage] = useState([]);
   const [selected, setSelected] = useState(1);
+
 
   const menuItems = [
     { id: 1, label: "Change Profile Picture" },
@@ -130,7 +131,7 @@ export default function Home() {
         message,
       };
 
-
+      setUnSavedMessage( prev => [...prev, msgPayload]);
       await socket.emit("message-received", msgPayload, (deleivered) => {
         console.log(deleivered);
         if (deleivered) {
@@ -163,9 +164,6 @@ export default function Home() {
 
   useEffect(() => {
     if (!socket) return;
-
-    
-
     socket.emit("getuser", { token }, (res) => {
       setUserList(res.message.users);
       setLoading(false);
@@ -196,6 +194,10 @@ export default function Home() {
   useEffect(() => {
     const stored = localStorage.getItem("messages");
     allMessages.current = stored ? JSON.parse(stored) : [];
+
+    return ()=>{
+      console.log(unSavedMessage);
+    }
   }, []);
 
   if (isLoading) {
@@ -234,7 +236,10 @@ export default function Home() {
                */}
 
               {showSetting && (
-                <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-md">
+                <div 
+                  tabIndex={0}
+                  onFocus={()=>console.log("working")}
+                className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-md">
                   <ul className="flex flex-col text-sm text-gray-700">
                     {menuItems.map((item) => (
                       <li
@@ -345,11 +350,6 @@ export default function Home() {
 
                   <p className="text-lg font-medium text-gray-800">{tmpUser.email === user.email ? "You" : tmpUser.name}</p>
 
-                  {unreadCounts[tmpUser._id] > 0 && (
-                    <div className="bg-green-500 px-2 py-1 rounded text-sm text-black">
-                      {unreadCounts[tmpUser._id]}
-                    </div>
-                  )}
                 </div>
               ))}
           </div>
