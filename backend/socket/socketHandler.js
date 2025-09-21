@@ -9,7 +9,8 @@ const { master, getReplica } = require('./../config/redis');
 const uploadFile = require('./fileHandler');
 const { findUsername, verifyOtp } = require('./forgetPassword');
 const { addFriend, findFriendRequest } = require('./friends');
-const {logDetails} = require('../utility/logger');
+const { logDetails } = require('../utility/logger');
+const { AppDataSource } = require('./../config/data-source');
 
 const socketHandler = (io) => {
     io.on('connection', (socket) => {
@@ -25,35 +26,31 @@ const socketHandler = (io) => {
         });
 
 
-        socket.on('getMessages', (data, callback) => {
-            const { from, to } = data;
-            const query = `
-                            SELECT * FROM message 
-                            WHERE (\`from\` = ? AND \`to\` = ?) 
-                                OR (\`from\` = ? AND \`to\` = ?)
-                            `;
 
-            connectionPool.query(query, [from, to, to, from], (error, results) => {
-                if (error) {
-                    console.error(error);
-                } else {
-                    console.log
-                    callback(results);
-                }
-            });
+        socket.on('getMessages', async (data, callback) => {
+            const messageRepository = AppDataSource.getRepository("OfflineMessage");
+             const { from, to } = data;
+            const messages = await messageRepository.query(
+                `
+                SELECT * FROM offline_message WHERE (\`from\` = ? AND \`to\` = ?) OR (\`from\` = ? AND \`to\` = ?) order by created_at asc`,
+                [from, to, to, from] 
+            );
+
+            console.log(messages);
+            callback(messages);
+
         });
 
 
         socket.on('message-received', async (data, cb) => {
             try {
+                saveOfflineMessage(data);
                 const socketId = await getReplica().get(data.to);
                 if (socketId) {
                     cb(true);
                     io.to(socketId).emit('message-received', data);
                 } else {
                     cb(false);
-
-                    saveOfflineMessage(data);
                 }
             } catch (error) {
                 console.error('Redis error:', error);

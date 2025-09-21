@@ -1,15 +1,22 @@
 const connectionPool = require('./../config/connection');
-const searchHandler = (username,cb)=>{
-    const quer = "SELECT * FROM users WHERE name LIKE ?";
+const User = require('../entity/User');
+const { AppDataSource } = require('./../config/data-source');
+const searchHandler = async (username,cb)=>{
+    
+    try{
+        const userRepository = AppDataSource.getRepository(User);
 
-    connectionPool.query(quer,[`%${username}%`],(err,results)=>{
-        if(err){
-            console.log(err);
-        }
+        const users = await userRepository
+                        .createQueryBuilder("users")
+                        .where("users.username LIKE :username", { username: `%${username}%` })
+                        .getMany();
+        console.log(users);
+        cb(users);
+    }
 
-        cb(results);
-        return;
-    })
+    catch(err){
+        console.log(err);
+    }
 }
 
 

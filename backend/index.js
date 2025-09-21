@@ -5,7 +5,7 @@ const userRouter = require('./authController/authContoller.js');
 const cors = require('cors');
 const socketHandler = require('./socket/socketHandler.js');
 const path = require('path');
-const fs = require('fs');
+const {AppDataSource} = require('./config/data-source.js');
 
 const{closeLoggerStream} = require('./utility/logger.js');
 
@@ -14,8 +14,13 @@ const{closeLoggerStream} = require('./utility/logger.js');
 
 const app = express();
 
-
-
+AppDataSource.initialize()
+  .then(()=>{
+    console.log("connected to database successully");
+  })
+  .catch((err)=>{
+    console.log(err);
+  })
 const server = http.createServer(app);
 
 const io = new Server(server,{
@@ -31,15 +36,6 @@ app.use(cors());
 
 
 app.use(express.json());
-
-
-
-app.use(()=>{
-
-})
-
-
-
 
 
 socketHandler(io);

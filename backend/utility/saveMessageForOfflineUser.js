@@ -1,16 +1,22 @@
-const connectionPool = require('./../config/connection');
+const { AppDataSource } = require('./../config/data-source');
 
-const saveOfflineMessage = (payload) => {
-    const qry = 'INSERT INTO offline_message (`to`, `from`, delivered, message) VALUES (?, ?, ?, ?)';
-    const {to, from, delivered, message} = payload;
-    connectionPool.query(qry, [to, from, delivered, message], (err, result) => {
-        if (err) {
-            console.error("Error inserting message:", err);
-        } else {
-            console.log("Message saved:", result.insertId);
-        }
-    });
+const saveOfflineMessage = async (payload) => {
+    try {
+        const messageRepository = AppDataSource.getRepository("OfflineMessage");
+
+        const newMessage = {
+            to_user: payload.to,
+            from_user: payload.from,
+            delivered: payload.delivered ?? null,
+            message: payload.message,
+        };
+
+        const savedMessage = await messageRepository.save(newMessage);
+        return savedMessage;
+    } catch (err) {
+        console.error("Error saving offline message:", err);
+        throw err;
+    }
 };
-
 
 module.exports = saveOfflineMessage;

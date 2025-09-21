@@ -1,5 +1,6 @@
-const hashPassword = require('../utility/hashPassword');
-const connectionPool = require('./../config/connection');
+const { AppDataSource } = require('./../config/data-source');
+const UserSchema = require('./../entity/User'); 
+const hashPassword = require('./../utility/hashPassword');
 
 const signupHandler = async (data, socket) => {
     let { name, username, email, contact, password } = data;
@@ -13,35 +14,27 @@ const signupHandler = async (data, socket) => {
         return socket.emit('signupMessageEvent', { message });
     }
 
-
     try {
         password = await hashPassword(password);
-    } catch (error) {
-        console.log(error);
-        return socket.emit('signupErrorEvent', { error: 'Signup failed' });
-    }
 
+        const userRepository = AppDataSource.getRepository("User");
 
-    const query = `
-    INSERT INTO users (_id, name, username, email, contact, password, created_at)
-    VALUES (UUID(), ?, ?, ?, ?, ?, NOW())
-  `;
+        const newUser = {
+            _id: crypto.randomUUID(),
+            name,
+            username,
+            email,
+            contact,
+            password,
+        };
 
-    const values = [name, username, email, contact, password];
-
-
-    connectionPool.query(query, values, (err, results) => {
-        if (err) {
-            console.error('Signup query error:', err);
-            return socket.emit('signupErrorEvent', { error: 'Signup failed' });
-        }
+        await userRepository.save(newUser);
 
         socket.emit('signupSuccessEvent', { message: 'Signup successful' });
-    });
-
+    } catch (error) {
+        console.log(error);
+        socket.emit('signupErrorEvent', { error: 'Signup failed' });
+    }
 };
-
-
-
 
 module.exports = signupHandler;

@@ -1,27 +1,22 @@
 const connectionPool = require("../config/connection");
 const verifyToken = require("../utility/verifyToken");
+const jwt = require('jsonwebtoken');
+const User = require('../entity/User');
+const { AppDataSource } = require('./../config/data-source');
 
 const getUserHandler = async (data, socket) => {
     const { token } = data;
 
+
     try {
-        const decoded = verifyToken(token); 
+        const userRepository = AppDataSource.getRepository("User");
 
-        return new Promise((resolve, reject) => {
-            const query = `SELECT * FROM users`;
-
-            connectionPool.query(query, (err, results) => {
-                if (err) {
-                    console.error("DB Error:", err);
-                    return resolve(null); 
-                }
-                return resolve(results); 
-            });
-        });
+        const users = await userRepository.find();
+        return users;
 
     } catch (error) {
         console.error("Token verification failed:", error.message);
-        return null; 
+        return null;
     }
 };
 
