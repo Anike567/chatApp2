@@ -10,7 +10,8 @@ const { findUsername, verifyOtp } = require('./forgetPassword');
 const { addFriend, findFriendRequest } = require('./friends');
 const { logDetails } = require('../utility/logger');
 const { AppDataSource } = require('./../config/data-source');
-const messages = require('./../entity/messageStore');
+const uuidToBase64UrlSafe = require('./../utility/base64Encoding');
+
 
 
 const socketHandler = (io) => {
@@ -18,11 +19,11 @@ const socketHandler = (io) => {
         // logDetails(socket);
 
         socket.on('updateSocketId', (data) => {
-            const { userId, socketid } = data;
-
+            let { userId, socketid } = data;
+            userId = uuidToBase64UrlSafe(userId)
+            
             master.set(userId, socketid);
             master.set(socket.id, userId);
-
 
         });
 
@@ -46,7 +47,7 @@ const socketHandler = (io) => {
             try {
                 
                 saveOfflineMessage(data);
-                const socketId = await master.get(data.to);
+                const socketId = await master.get(uuidToBase64UrlSafe(data.to));
                 if (socketId) {
                     cb(true);
                     io.to(socketId).emit('message-received', data);
