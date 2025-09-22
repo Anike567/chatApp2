@@ -1,20 +1,23 @@
 const { AppDataSource } = require('./../config/data-source');
 
-const saveOfflineMessage = async (payload) => {
+const saveOfflineMessage = async (msg) => {
     try {
         const messageRepository = AppDataSource.getRepository("OfflineMessage");
 
-        const newMessage = {
-            to_user: payload.to,
-            from_user: payload.from,
-            delivered: payload.delivered ?? null,
-            message: payload.message,
+        // Map payload array to entity objects
+        const newMessages ={
+            to_user: msg.to,
+            from_user: msg.from,
+            delivered: msg.delivered ?? null,
+            message: msg.message,
         };
 
-        const savedMessage = await messageRepository.save(newMessage);
-        return savedMessage;
+        // Save all at once (TypeORM supports array save)
+        const savedMessages = await messageRepository.save(newMessages);
+
+        return savedMessages;
     } catch (err) {
-        console.error("Error saving offline message:", err);
+        console.error("Error saving offline messages:", err);
         throw err;
     }
 };

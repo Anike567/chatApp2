@@ -8,8 +8,9 @@ const path = require('path');
 const {AppDataSource} = require('./config/data-source.js');
 
 const{closeLoggerStream} = require('./utility/logger.js');
+const saveOfflineMessage = require('./utility/saveMessageForOfflineUser.js');
 
-
+const messages = require('./entity/messageStore.js');
 
 
 const app = express();
@@ -47,9 +48,13 @@ server.listen(3000, () => {
 
 
 
-["SIGINT", "SIGTERM"].forEach(signal => {
+["SIGINT", "SIGTERM","uncaughtException", "unhandledRejection"].forEach(signal => {
   process.on(signal, () => {
     closeLoggerStream(); 
+    if(messages.length > 0){
+      saveOfflineMessage(messages);
+    }
+
 
     if (server) {
       server.close(() => {
@@ -61,3 +66,8 @@ server.listen(3000, () => {
     }
   });
 });
+
+
+
+
+module.exports = messages;

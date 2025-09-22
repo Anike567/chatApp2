@@ -1,4 +1,3 @@
-import React from 'react'
 import { BiCheckDouble } from "react-icons/bi";
 import { FaCheck } from "react-icons/fa";
 
@@ -8,21 +7,29 @@ export default function Message({ msg, user }) {
     return (
         <div className={`flex w-full ${isSender ? "justify-end" : "justify-start"}`}>
             <div
-                className={`relative px-4 py-2 my-2 rounded-xl shadow-md break-words inline-block max-w-[75%] ${
-                    isSender
-                        ? "bg-green-600 text-white"
-                        : "bg-blue-600 text-white"
-                }`}
+                className={`relative flex justify-between items-start px-4 py-3 rounded-xl shadow-md max-w-[50%] ${isSender
+                    ? "bg-green-600 text-white"
+                    : "bg-blue-600 text-white"
+                    }`}
             >
-                <p className="text-lg mb-2">{msg.message}</p>
+                {/* Message text */}
+                <p className="text-lg">{msg.message}</p>
+
+                {/* Right side (dropdown + tick) */}
                 {isSender && (
-                    <span className="absolute bottom-0 right-2 text-xs text-gray-200 flex items-center">
-                        {msg.deleiverd === 'pending'
-                            ? <FaCheck size={15} />
-                            : <BiCheckDouble size={25} />}
-                    </span>
+                    <div className="flex item-center justify-center flex-col items-end ml-2">
+
+                        {/* Delivery tick */}
+                        <div>
+                            <span className="text-xs text-gray-200 flex items-center">
+                                {msg.delivered === "pending"
+                                    ? <FaCheck size={18} />
+                                    : <BiCheckDouble size={18} />}
+                            </span>
+                        </div>
+                    </div>
                 )}
             </div>
         </div>
-    )
+    );
 }
