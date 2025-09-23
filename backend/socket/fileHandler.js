@@ -1,32 +1,25 @@
-const connectionPool = require('./../config/connection');
+const { AppDataSource } = require('../config/data-source.js');
 
-const uploadFile = (data, cb) => {
+const uploadFile = async (data, cb) => {
+  try {
+    const userRepository = AppDataSource.getRepository("User");
 
-
-    let qry = "SELECT * FROM users WHERE _id = ?";
-
-    try {
-        connectionPool.query(qry, [data._id], (err, result) => {
-            if (err) {
-                throw err;
-            }
-
-            if (result.length > 0) {
-                qry = "UPDATE users SET dp = ? WHERE _id = ?";
-                connectionPool.query(qry, [data.fileData, data._id], (err, result) => {
-                    if (err) {
-                        throw err;
-                    }
-                    
-                    cb({ error: false, msg: "dp uploaded successfully" });
-                });
-            } else {
-                throw new Error("Something went wrong please try later");
-            }
-        });
-    } catch (err) {
-        cb({ error: true, msg: "Something went wrong please try later " });
+    // check if user exists
+    const user = await userRepository.findOneBy({ _id: data._id });
+    if (!user) {
+      return cb({ error: true, msg: "User not found" });
     }
+
+    await userRepository.update(
+      { _id: data._id },  
+      { dp: data.fileData } 
+    );
+
+    cb({ error: false, msg: "dp uploaded successfully" });
+  } catch (err) {
+    console.error(err);
+    cb({ error: true, msg: "Something went wrong please try later" });
+  }
 };
 
 module.exports = uploadFile;
