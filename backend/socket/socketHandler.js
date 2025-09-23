@@ -20,8 +20,7 @@ const socketHandler = (io) => {
 
         socket.on('updateSocketId', (data) => {
             let { userId, socketid } = data;
-            userId = uuidToBase64UrlSafe(userId)
-            
+            userId = uuidToBase64UrlSafe(userId);
             master.set(userId, socketid);
             master.set(socket.id, userId);
 
@@ -62,7 +61,6 @@ const socketHandler = (io) => {
 
         //login event handler
         socket.on('loginEvent', (user, callback) => {
-
             loginHandler(user, socket, callback);
         });
 
