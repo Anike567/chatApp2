@@ -4,13 +4,16 @@ const signupHandler = require('./signup');
 const connectionPool = require('./../config/connection');
 const searchHandler = require("./searchhHandler");
 const saveOfflineMessage = require('./../utility/saveMessageForOfflineUser');
-const { master} = require('./../config/redis');
+const { master } = require('./../config/redis');
 const uploadFile = require('./fileHandler');
 const { findUsername, verifyOtp } = require('./forgetPassword');
 const { addFriend, findFriendRequest } = require('./friends');
 const { logDetails } = require('../utility/logger');
 const { AppDataSource } = require('./../config/data-source');
 const uuidToBase64UrlSafe = require('./../utility/base64Encoding');
+const jwt = require('jsonwebtoken');
+const verifyToken = require('../utility/verifyToken');
+
 
 
 
@@ -30,11 +33,11 @@ const socketHandler = (io) => {
 
         socket.on('getMessages', async (data, callback) => {
             const messageRepository = AppDataSource.getRepository("OfflineMessage");
-             const { from, to } = data;
+            const { from, to } = data;
             const savedMessages = await messageRepository.query(
                 `
                 SELECT * FROM offline_message WHERE (\`from\` = ? AND \`to\` = ?) OR (\`from\` = ? AND \`to\` = ?) order by created_at asc`,
-                [from, to, to, from] 
+                [from, to, to, from]
             );
             callback(savedMessages);
 
@@ -42,19 +45,28 @@ const socketHandler = (io) => {
 
 
         socket.on('message-received', async (data, cb) => {
-            
-            try {
-                
-                saveOfflineMessage(data);
-                const socketId = await master.get(uuidToBase64UrlSafe(data.to));
-                if (socketId) {
-                    cb(true);
-                    io.to(socketId).emit('message-received', data);
-                } else {
-                    cb(false);
+            const token = data.token;
+            const verifiedToken = verifyToken(token);
+            if (verifiedToken) {
+                try {
+
+                    data = data.msg;
+                    saveOfflineMessage(data);
+                    const socketId = await master.get(uuidToBase64UrlSafe(data.to));
+                    if (socketId) {
+                        cb({error : false, status : true});
+                        io.to(socketId).emit('message-received', data);
+                    } else {
+                        cb({error : false, status : false});
+                    }
+
+
+                } catch (error) {
+                    cb({error : true, message : "Internal Server error try again later"});
                 }
-            } catch (error) {
-                console.error('Redis error:', error);
+            }
+            else{
+                cb({error : true, message : "Token missing please login again"});
             }
         });
 
@@ -83,17 +95,15 @@ const socketHandler = (io) => {
 
         socket.on('getuser', async (data, callback) => {
             try {
-                const users = await getUserHandler(data, socket);
 
-                if (!users) {
-                    socket.emit('tokenExpiresEvent', { error: 'Token expired. Please login again' });
-                    return callback({ message: { users: [] } });
+                const users = await getUserHandler(data);
+                if(!users){
+                    callback({error : true,message : "Missing token please login again"})
                 }
-
-                callback({ message: { users } });
+                callback({error : false, message: { users } });
             } catch (err) {
                 console.error(err);
-                callback({ message: { users: [], error: 'Internal server error' } });
+                callback({error : true, message : "Internal server error occured try again later"});
             }
         });
 

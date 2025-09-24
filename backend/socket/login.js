@@ -3,6 +3,7 @@ const { AppDataSource } = require('../config/data-source.js');
 const jwt = require('jsonwebtoken');
 const User = require('../entity/User');
 
+
 const loginHandler = async (userInput, socket, callback) => {
     const { username, password } = userInput;
 
@@ -23,6 +24,7 @@ const loginHandler = async (userInput, socket, callback) => {
     }
 
     try {
+        const secretKey = process.env.JWT_SECRET
         const userRepository = AppDataSource.getRepository("User"); 
 
         const dbUser = await userRepository.findOne({ where: { username } });
@@ -33,11 +35,8 @@ const loginHandler = async (userInput, socket, callback) => {
         }
 
         const isMatch = await comparePassword(password, dbUser.password);
-
         if (isMatch) {
-            const token = jwt.sign({ id: dbUser._id, username: dbUser.username }, process.env.JWT_SECRET, {
-                expiresIn: '1h',
-            });
+            const token = jwt.sign({ id: dbUser._id, username: dbUser.username }, secretKey );
 
             res.token = token;
             res.isLoggedIn = true;

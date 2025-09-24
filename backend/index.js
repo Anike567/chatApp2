@@ -11,9 +11,10 @@ const{closeLoggerStream} = require('./utility/logger.js');
 const saveOfflineMessage = require('./utility/saveMessageForOfflineUser.js');
 
 const messages = require('./entity/messageStore.js');
-
+require('dotenv').config();
 
 const app = express();
+
 
 AppDataSource.initialize()
   .then(()=>{

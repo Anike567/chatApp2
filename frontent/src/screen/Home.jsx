@@ -1,7 +1,6 @@
-import { FiUserPlus } from "react-icons/fi";
 import { useContext, useEffect, useRef, useState } from "react";
 import Loader from "../components/Loader";
-import { FiPhoneCall, FiSend, FiUser, FiVideo } from "react-icons/fi";
+import { FiUser } from "react-icons/fi";
 import { HiDotsVertical } from "react-icons/hi";
 import { SocketContext } from "../store/socketIdContext";
 import { AuthContext } from "../store/authContext";
@@ -13,6 +12,8 @@ import Message from "../components/Message";
 import SelectedUser from "../components/SelectedUser";
 import MessageInput from "../components/MessageInput";
 import SearchResult from "../components/SearchResult";
+import User from "../components/User";
+import Logout from "../components/Logout";
 
 
 /**
@@ -20,7 +21,6 @@ import SearchResult from "../components/SearchResult";
  * @returns {JSX.Element}
  */
 export default function Home() {
-  const allMessages = useRef([]);
   const { user, token } = useContext(AuthContext).authData;
   const { socket, socketId } = useContext(SocketContext);
   const [isLoading, setLoading] = useState(true);
@@ -41,12 +41,14 @@ export default function Home() {
     { id: 1, label: "Change Profile Picture" },
     { id: 2, label: "Change Password" },
     { id: 3, label: "Friend Requests" },
+    { id: 4, label: "Logout" },
   ];
 
   const settingComponents = {
     1: <UpdateProfile />,
     2: <ForgetPassword />,
-    3: <FriendRequests />
+    3: <FriendRequests />,
+    4: <Logout user={user} />
   };
 
 
@@ -97,25 +99,31 @@ export default function Home() {
       if (!message.trim() || !selectedUser) return;
 
       const msgPayload = {
-        to: selectedUser._id,
-        from: user._id,
-        deleiverd: null,
-        message,
+        token: token,
+        msg: {
+          to: selectedUser._id,
+          from: user._id,
+          deleiverd: null,
+          message,
+        }
+
       };
 
-      await socket.emit("message-received", msgPayload, (deleivered) => {
-        console.log(deleivered);
-        if (deleivered) {
-          msgPayload.deleiverd = 'delievered';
-
-
+      await socket.emit("message-received", msgPayload, (data) => {
+        if (data.error) {
+          alert(data.message);
+        } else {
+          const deleivered = data.status;
+          if (deleivered) {
+            msgPayload.msg.deleiverd = 'delievered';
+          }
+          else {
+            msgPayload.msg.deleiverd = 'pending'
+          }
         }
-        else {
-          msgPayload.deleiverd = 'pending'
-        }
-        allMessages.current.push(msgPayload);
 
-        setMessageList(prev => [...prev, msgPayload]);
+
+        setMessageList(prev => [...prev, msgPayload.msg]);
         setMessage("");
       });
 
@@ -141,9 +149,14 @@ export default function Home() {
 
   useEffect(() => {
     if (!socket) return;
-    socket.emit("getuser", { token }, (res) => {
-      setUserList(res.message.users);
-      setLoading(false);
+    socket.emit("getuser", { token }, (data) => {
+      if (data.error) {
+        alert(data.message);
+      }
+      else {
+        setUserList(data.message.users);
+        setLoading(false)
+      }
     });
 
     socket.emit("updateSocketId", { userId: user._id, socketid: socketId });
@@ -168,9 +181,12 @@ export default function Home() {
 
   if (isLoading) {
     return (
-      <div className="flex-1 flex justify-center items-center">
+
+      <div className="flex items-center justify-center w-screen h-screen bg-white">
         <Loader />
       </div>
+
+
     );
   }
 
@@ -204,7 +220,6 @@ export default function Home() {
               {showSetting && (
                 <div
                   tabIndex={0}
-                  onFocus={() => console.log("working")}
                   className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-md">
                   <ul className="flex flex-col text-sm text-gray-700">
                     {menuItems.map((item) => (
@@ -217,7 +232,7 @@ export default function Home() {
                             : "hover:bg-blue-50 hover:shadow-md hover:text-blue-600"
                           }
           `}
-                        onClick={() => { console.log(item.id); setSettingOption(item.id); setIsOpen(true) }}
+                        onClick={() => { setSettingOption(item.id); setIsOpen(true) }}
                         onMouseEnter={() => { setSelected(item.id) }}
                       >
                         {item.label}
@@ -235,7 +250,7 @@ export default function Home() {
               )}
 
               {searchText.trim() && searchRsult.length > 0 && (
-                <SearchResult searchRsult={searchRsult}/>
+                <SearchResult searchRsult={searchRsult} />
               )}
 
 
@@ -254,26 +269,7 @@ export default function Home() {
                   }}
                   className="flex items-center space-x-4 p-4 cursor-pointer hover:bg-blue-100 transition duration-200"
                 >
-                  <div className="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden">
-                    {tmpUser.dp ? (
-                      (() => {
-                        const blob = new Blob([tmpUser.dp], { type: "image/png" });
-                        const url = URL.createObjectURL(blob);
-                        return (
-                          <img
-                            src={url}
-                            alt="user dp"
-                            className="w-full h-full object-cover"
-                          />
-                        );
-                      })()
-                    ) : (
-                      <FiUser size={24} className="text-gray-700" />
-                    )}
-                  </div>
-
-                  <p className="text-lg font-medium text-gray-800">{tmpUser.email === user.email ? "You" : tmpUser.name}</p>
-
+                  <User tmpUser={tmpUser} user={user} />
                 </div>
               ))}
           </div>
@@ -286,22 +282,22 @@ export default function Home() {
         {selectedUser ? (
           <>
             {/* Header */}
-            <SelectedUser user = {selectedUser} />
+            <SelectedUser user={selectedUser} />
 
             {/* Messages */}
 
 
             <div className="flex-1 p-6 overflow-auto space-y-3">
               {messageList.map((msg, index) => (
-                <Message key={index} msg={msg} user ={user}/>
+                <Message key={index} msg={msg} user={user} />
               ))}
               <div ref={messageEndRef}></div>
             </div>
 
 
             {/* Input */}
-            <MessageInput setMessage={setMessage} handleSend={handleSend} message = {message}/>
-            
+            <MessageInput setMessage={setMessage} handleSend={handleSend} message={message} />
+
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center text-center">

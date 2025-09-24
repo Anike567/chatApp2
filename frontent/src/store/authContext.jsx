@@ -9,7 +9,7 @@ export default function AuthContextProvider({ children }) {
   const [authData, setAuthData] = useState({
     isLoggedIn: false,
     user: null,
-    token:null,
+    token: null,
   });
 
   useEffect(() => {
@@ -18,12 +18,16 @@ export default function AuthContextProvider({ children }) {
     if (parsedData) {
       setAuthData(parsedData);
     }
-
     setIsLoading(false);
-  }, []); // ✅ Only run once
+  }, []);
 
   if (isLoading) {
-    return <Loader />;
+    return (
+      <div className="flex items-center justify-center w-screen h-screen bg-white">
+        <Loader />
+      </div>
+    );
+
   }
 
   return (
