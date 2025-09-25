@@ -1,6 +1,5 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import Loader from "../components/Loader";
-import { FiUser } from "react-icons/fi";
 import { HiDotsVertical } from "react-icons/hi";
 import { SocketContext } from "../store/socketIdContext";
 import { AuthContext } from "../store/authContext";
@@ -101,7 +100,7 @@ export default function Home() {
       const msgPayload = {
         token: token,
         msg: {
-          to: selectedUser._id,
+          to: selectedUser.u__id,
           from: user._id,
           deleiverd: null,
           message,
@@ -109,7 +108,7 @@ export default function Home() {
 
       };
 
-      await socket.emit("message-received", msgPayload, (data) => {
+      socket.emit("message-received", msgPayload, (data) => {
         if (data.error) {
           alert(data.message);
         } else {
@@ -121,7 +120,6 @@ export default function Home() {
             msgPayload.msg.deleiverd = 'pending'
           }
         }
-
 
         setMessageList(prev => [...prev, msgPayload.msg]);
         setMessage("");
@@ -137,9 +135,10 @@ export default function Home() {
     if (selectedUser) {
 
       const payload = {
-        to: selectedUser._id,
+        to: selectedUser.u__id,
         from: user._id
       }
+      
       socket.emit("getMessages", payload, (data) => {
         setMessageList(data);
       });

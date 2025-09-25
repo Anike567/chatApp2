@@ -1,4 +1,4 @@
-const connectionPool = require('./../config/connection');
+
 const User = require('../entity/User');
 const { AppDataSource } = require('./../config/data-source');
 const searchHandler = async (username,cb)=>{
@@ -10,7 +10,6 @@ const searchHandler = async (username,cb)=>{
                         .createQueryBuilder("users")
                         .where("users.username LIKE :username", { username: `%${username}%` })
                         .getMany();
-        console.log(users);
         cb(users);
     }
 

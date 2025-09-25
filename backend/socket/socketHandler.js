@@ -7,7 +7,7 @@ const saveOfflineMessage = require('./../utility/saveMessageForOfflineUser');
 const { master } = require('./../config/redis');
 const uploadFile = require('./fileHandler');
 const { findUsername, verifyOtp } = require('./forgetPassword');
-const { addFriend, findFriendRequest } = require('./friends');
+const { addFriend, findFriendRequest, acceptFriendRequest } = require('./friends');
 const { logDetails } = require('../utility/logger');
 const { AppDataSource } = require('./../config/data-source');
 const uuidToBase64UrlSafe = require('./../utility/base64Encoding');
@@ -132,6 +132,10 @@ const socketHandler = (io) => {
 
         socket.on("getFriendRequestList", (data, cb) => {
             findFriendRequest(data, cb);
+        })
+
+        socket.on("accept-request",(data, cb)=>{
+            acceptFriendRequest(data, cb);
         })
 
         /**

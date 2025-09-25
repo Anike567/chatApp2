@@ -1,14 +1,13 @@
-require("dotenv").config();
-setTimeout(()=>{
-    const jwt = require("jsonwebtoken");
+const { AppDataSource } = require("./../config/data-source");
 
-const secret = process.env.JWT_SECRET;
-console.log("SECRET:", secret);
+AppDataSource.initialize()
+  .then(async () => {
+    console.log("connected to database successfully");
 
-const token = jwt.sign({ foo: "bar" }, secret);
-console.log("TOKEN:", token);
-
-const decoded = jwt.verify(token, secret);
-console.log("DECODED:", decoded);
-
-},3000)
+    const friendsRepo = AppDataSource.getRepository("friends");
+    const friends = await friendsRepo.find();
+    console.log(friends);
+  })
+  .catch(err => {
+    console.error("DB connection error:", err);
+  });

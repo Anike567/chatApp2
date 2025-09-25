@@ -1,29 +1,30 @@
-const connectionPool = require("../config/connection");
 const verifyToken = require("../utility/verifyToken");
-const jwt = require('jsonwebtoken');
-const User = require('../entity/User');
-const { AppDataSource } = require('./../config/data-source');
+const { AppDataSource } = require("./../config/data-source");
 
 const getUserHandler = async (data) => {
     const { token } = data;
     const verifiedToken = verifyToken(token);
+    const entityManager = AppDataSource.manager;
 
-    if (verifiedToken) {
-        try {
-            const userRepository = AppDataSource.getRepository("User");
-
-            const users = await userRepository.find();
-            return users;
-
-        } catch (error) {
-            console.error(error.message);
-            return null;
-        }
-    }
-    else{
+    if (!verifiedToken) {
         return null;
     }
-
+   
+    try {
+        const userId = verifiedToken.id;
+        const friends = await entityManager
+            .createQueryBuilder()
+            .select("u") // select whole user entity
+            .from("users", "u")
+            .innerJoin("friends", "f", "u._id = f.user1 OR u._id = f.user2")
+            .where(":userId IN (f.user1, f.user2)", { userId })
+            .andWhere("u._id <> :userId", { userId })
+            .getRawMany();
+        return friends;
+    } catch (error) {
+        console.error("DB error:", error.message);
+        return null;
+    }
 };
 
 module.exports = getUserHandler;

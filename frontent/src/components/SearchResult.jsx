@@ -1,7 +1,21 @@
-import React from 'react'
+import React,{useContext} from 'react';
 import { FiPhoneCall, FiSend, FiUser, FiUserPlus} from "react-icons/fi";
+import { SocketContext } from '../store/socketIdContext';
+import { AuthContext } from '../store/authContext';
+
 
 export default function SearchResult({searchRsult}) {
+    const { socket, socketId } = useContext(SocketContext);
+    const { user, token } = useContext(AuthContext).authData;
+    const sendFrienRequest = (toId)=>{
+        const payload = {
+            to : toId,
+            from : user._id
+        }
+        socket.emit("addFriend",payload, (res)=>{
+            alert(res.message);
+        })
+    }
     return (
         <div className="absolute z-100 w-full bg-white border border-gray-300 rounded-lg shadow-lg mt-1 max-h-60 overflow-auto">
             {searchRsult.map((result, index) => (

@@ -12,9 +12,13 @@ export default function FriendRequests() {
     const { socket, socketId } = useContext(SocketContext);
     const { user, token } = useContext(AuthContext).authData;
     const [message, setMessage] = useState("");
-
+    
     useEffect(() => {
-        socket.emit("getFriendRequestList", user._id, (res) => {
+        const payload = {
+            data : user._id,
+            token
+        }
+        socket.emit("getFriendRequestList", payload , (res) => {
             setLoading(false);
             console.log(res);
             if(res.error){
@@ -26,6 +30,18 @@ export default function FriendRequests() {
         });
 
     }, []);
+
+    const handleAcceptRequest = (user1)=>{
+        const payload = {
+            token : token,
+            user1 : user._id,
+            user2 : user1
+        }
+
+        socket.emit('accept-request', payload, (data)=>{
+            alert(data.message);
+        })
+    }
 
     if (isLoading) {
         return <Loader />
@@ -65,28 +81,17 @@ export default function FriendRequests() {
                         </div>
                     </div>
 
-                    {/* Friend request icon */}
-                    <FiUserPlus
-                        onClick={() => { sendFrienRequest(result._id) }}
-                        size={30}
-                        className="text-blue-500 hover:text-blue-700 cursor-pointer"
-                    />
+                    
+                    <div className='text-blue-600' onClick={()=>{handleAcceptRequest(result._id)}}>
+                        <p>Accept</p>
+                    </div>
                 </div>
             ))}
             {friendRequests.length === 0 && <div>
-                <p>No new Friend Request</p>
+                <p className='text-red-500'>No new Friend Request</p>
             </div>}
 
-            {message && (
-                <div className="mt-4 relative bg-red-100 text-red-700 px-4 py-2 rounded-md shadow-sm">
-                    <p className='w-full text-center mx-2'>{message}</p>
-                    <FiX
-                        className="absolute top-2 right-2 text-red-500 hover:text-red-700 cursor-pointer"
-                        size={20}
-                        onClick={() => setMessage('')}
-                    />
-                </div>
-            )}
+           
         </div>
     )
 }

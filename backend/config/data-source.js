@@ -1,9 +1,10 @@
 require("reflect-metadata");
 const { DataSource } = require("typeorm");
-require("dotenv").config();
-const path = require("path");
 const User = require("./../entity/User");
 const OfflineMessage = require('./../entity/Message');
+const Friends = require('./../entity/friends');
+const FriendsRequest = require('./../entity/friendRequest');
+require('dotenv').config();
 
 const AppDataSource = new DataSource({
   type: "mysql",
@@ -14,7 +15,7 @@ const AppDataSource = new DataSource({
   database: process.env.DB_NAME,
   synchronize: false, 
   logging: false,
-  entities: [User,OfflineMessage], 
+  entities: [User,OfflineMessage, Friends,FriendsRequest], 
   migrations: [],
   subscribers: [],
 });
