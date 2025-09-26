@@ -34,6 +34,7 @@ const loginHandler = async (userInput, socket, callback) => {
             return callback(res);
         }
 
+
         const isMatch = await comparePassword(password, dbUser.password);
         if (isMatch) {
             const token = jwt.sign({ id: dbUser._id, username: dbUser.username }, secretKey );

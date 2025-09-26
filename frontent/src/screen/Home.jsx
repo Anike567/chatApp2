@@ -90,7 +90,7 @@ export default function Home() {
 
   /**
    * Send a message via socket
-   * @param {KeyboardEvent | MouseEvent} e
+   * @param {KeyboardEvent | MouseEvent} 
    * @returns {void}
    */
   const handleSend = async (e) => {
@@ -138,7 +138,7 @@ export default function Home() {
         to: selectedUser.u__id,
         from: user._id
       }
-      
+
       socket.emit("getMessages", payload, (data) => {
         setMessageList(data);
       });
