@@ -3,16 +3,16 @@ import { FiPhoneCall, FiUser, FiVideo } from "react-icons/fi";
 
 export default function SelectedUser({ user }) {
 
-   
+   console.log(user);
 
     return (
         <div className="flex items-center justify-between p-5 border-b bg-white shadow-sm">
             {/* Left: Avatar + Name */}
             <div className="flex items-center space-x-4">
                 <div className="w-12 h-12 cursor-pointer rounded-full bg-gray-300 flex items-center justify-center overflow-hidden">
-                    {user.dp ? (
+                    {user.u_dp ? (
                         (() => {
-                            const blob = new Blob([user.dp], { type: "image/png" });
+                            const blob = new Blob([user.u_dp], { type: "image/png" });
                             const url = URL.createObjectURL(blob);
                             return (
                                 <img
@@ -27,7 +27,7 @@ export default function SelectedUser({ user }) {
                     )}
                 </div>
                 <p className="text-lg font-semibold text-gray-800">
-                    {user.name}
+                    {user.u_name}
                 </p>
             </div>
 
