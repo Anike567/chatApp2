@@ -2,7 +2,7 @@ import React, { useEffect, useState, useContext } from 'react'
 import Loader from './Loader';
 import { SocketContext } from '../store/socketIdContext';
 import { AuthContext } from "../store/authContext";
-import { FiUser,FiUserPlus } from 'react-icons/fi';
+import { FiUser, FiUserPlus } from 'react-icons/fi';
 
 
 
@@ -12,34 +12,45 @@ export default function FriendRequests() {
     const { socket, socketId } = useContext(SocketContext);
     const { user, token } = useContext(AuthContext).authData;
     const [message, setMessage] = useState("");
-    
-    useEffect(() => {
+
+
+    const getFriendRequest = () => {
         const payload = {
-            data : user._id,
+            data: user._id,
             token
         }
-        socket.emit("getFriendRequestList", payload , (res) => {
+        socket.emit("getFriendRequestList", payload, (res) => {
             setLoading(false);
             console.log(res);
-            if(res.error){
+            if (res.error) {
                 setMessage(res.message);
                 return
             }
-            console.log(res.data);
             setFriendRequests(res.data);
         });
+    }
+
+    useEffect(() => {
+        getFriendRequest();
 
     }, []);
 
-    const handleAcceptRequest = (user1)=>{
+    const handleAcceptRequest = (user1) => {
         const payload = {
-            token : token,
-            user1 : user._id,
-            user2 : user1
+            token: token,
+            to: user._id,
+            from: user1
         }
 
-        socket.emit('accept-request', payload, (data)=>{
-            alert(data.message);
+        socket.emit('accept-request', payload, (data) => {
+
+            if(data.error){
+                alert(data.message);
+            }
+
+            if(data.message = "Accepted"){
+                getFriendRequest();
+            }
         })
     }
 
@@ -81,8 +92,8 @@ export default function FriendRequests() {
                         </div>
                     </div>
 
-                    
-                    <div className='text-blue-600' onClick={()=>{handleAcceptRequest(result._id)}}>
+
+                    <div className='text-blue-600' onClick={() => { handleAcceptRequest(result._id) }}>
                         <p>Accept</p>
                     </div>
                 </div>
@@ -91,7 +102,7 @@ export default function FriendRequests() {
                 <p className='text-red-500'>No new Friend Request</p>
             </div>}
 
-           
+
         </div>
     )
 }

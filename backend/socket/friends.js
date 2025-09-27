@@ -4,25 +4,34 @@ const verifyToken = require("../utility/verifyToken");
 const { AppDataSource } = require("./../config/data-source");
 const { In } = require("typeorm");
 
-const addFriend = async (data, cb) => {
-    try {
+const addFriend = async (param, cb) => {
+    const { token, data } = param;
 
-        const friendRequestRepo = AppDataSource.getRepository("FriendsRequest");
-        const res = await friendRequestRepo.save(data);
-        cb({ error: false, message: "Friend request sent " })
-    }
-    catch (err) {
-        console.log(err);
-        cb({ error: true, message: "Internal Server Error occured" });
+    const isVerified = verifyToken(token);
 
+    if (verifyToken) {
+        try {
+
+            const friendRequestRepo = AppDataSource.getRepository("FriendsRequest");
+            const res = await friendRequestRepo.save(data);
+            cb({ error: false, statusCode : 200,message: "Friend request sent " })
+        }
+        catch (err) {
+            console.log(err);
+            cb({ error: true, statusCode: 500, message: "Internal Server Error occured" });
+
+        }
     }
+    else{
+        cb({error : true, messages : "Token is missing of expired please login again"});
+    }
+
 };
 
 const findFriendRequest = async (payload, cb) => {
     const friendRequestRepo = AppDataSource.getRepository("FriendsRequest");
     const userRepository = AppDataSource.getRepository("User");
     const { data, token } = payload;
-    console.log(data)
     const verifiedToken = verifyToken(token);
 
     if (!verifiedToken) {
@@ -61,27 +70,46 @@ const findFriendRequest = async (payload, cb) => {
 
 
 const acceptFriendRequest = async (data, cb) => {
-    const { token, user1, user2 } = data;
+    const { token, to, from } = data;
     const friendRequestRepo = AppDataSource.getRepository("FriendsRequest");
     const frRepository = AppDataSource.getRepository("Friends");
 
     const verifiedToken = verifyToken(token);
 
-    if (verifiedToken) {
-        try {
-            const res = await frRepository.save({ user1, user2 });
-            cb({ error: false, messages: "Accepted" });
-        }
-
-        catch (err) {
-            console.log(err);
-            cb({ error: true, messages: 'Internal Sever error occured try again later' });
-        }
-
+    if (!verifiedToken) {
+        return cb({
+            error: true,
+            messages: 'Token is expired or missing, please login again'
+        });
     }
-    else {
-        cb({ error: true, messages: 'token is expired or missing please login again' });
+
+    try {
+        // Find request between these two users
+        const friendRequests = await friendRequestRepo.find({
+            where: [
+                { to: to, from: from },
+                { to: from, from: to }
+            ]
+        });
+
+        if (friendRequests.length > 0) {
+            // Delete the friend requests
+            await friendRequestRepo.remove(friendRequests);
+
+            // Save the friendship
+            await frRepository.save({ user1: from, user2: to });
+
+            return cb({ error: false, messages: "Accepted" });
+        } else {
+            return cb({ error: true, messages: "No friend request found" });
+        }
+    } catch (err) {
+        console.error(err);
+        return cb({
+            error: true,
+            messages: 'Internal Server Error occurred, try again later'
+        });
     }
-}
+};
 
 module.exports = { addFriend, findFriendRequest, acceptFriendRequest };

@@ -3,7 +3,6 @@ import { FiPhoneCall, FiUser, FiVideo } from "react-icons/fi";
 
 export default function SelectedUser({ user }) {
 
-   console.log(user);
 
     return (
         <div className="flex items-center justify-between p-5 border-b bg-white shadow-sm">

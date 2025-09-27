@@ -33,7 +33,8 @@ export default function Home() {
   const [isOpen, setIsOpen] = useState(false);
   const messageEndRef = useRef(null);
   const [searchRsult, setSearchResult] = useState([]);
-  const [selected, setSelected] = useState(1);
+  const [selected, setSelected] = useState(null);
+  const [friendsList, setFriendList] = useState([]);
 
 
   const menuItems = [
@@ -56,7 +57,7 @@ export default function Home() {
    * send friend request to friend
    */
   const sendFrienRequest = (toId) => {
-    console.log("working");
+    
     const payload = {
       from: user._id,
       to: toId
@@ -153,6 +154,8 @@ export default function Home() {
         alert(data.message);
       }
       else {
+
+        setFriendList(new Set(data.message.users.map( data => data.u__id)));
         setUserList(data.message.users);
         setLoading(false)
       }
@@ -249,7 +252,7 @@ export default function Home() {
               )}
 
               {searchText.trim() && searchRsult.length > 0 && (
-                <SearchResult searchRsult={searchRsult} />
+                <SearchResult searchRsult={searchRsult} friendList={friendsList} />
               )}
 
 

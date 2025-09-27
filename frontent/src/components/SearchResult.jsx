@@ -1,19 +1,25 @@
-import React,{useContext} from 'react';
-import { FiPhoneCall, FiSend, FiUser, FiUserPlus} from "react-icons/fi";
+import React, { useContext } from 'react';
+import { FiUser, FiUserCheck, FiUserPlus } from "react-icons/fi";
 import { SocketContext } from '../store/socketIdContext';
 import { AuthContext } from '../store/authContext';
+import { FaUserCheck } from "react-icons/fa";
 
 
-export default function SearchResult({searchRsult}) {
+export default function SearchResult({ searchRsult, friendList }) {
     const { socket, socketId } = useContext(SocketContext);
     const { user, token } = useContext(AuthContext).authData;
-    const sendFrienRequest = (toId)=>{
+    const sendFrienRequest = (toId) => {
         const payload = {
-            to : toId,
-            from : user._id
+            token,
+            data: {
+                to: toId,
+                from: user._id
+            }
+
         }
-        socket.emit("addFriend",payload, (res)=>{
+        socket.emit("addFriend", payload, (res) => {
             alert(res.message);
+            
         })
     }
     return (
@@ -51,11 +57,20 @@ export default function SearchResult({searchRsult}) {
                     </div>
 
                     {/* Friend request icon */}
-                    <FiUserPlus
-                        onClick={() => { sendFrienRequest(result._id) }}
-                        size={30}
-                        className="text-blue-500 hover:text-blue-700 cursor-pointer"
-                    />
+
+                    {friendList.has(result._id) ? (
+                        <FiUserCheck
+                            size={30}
+                            className="text-blue-500 hover:text-blue-700 cursor-pointer"
+                        />
+                    ) : (
+                        <FiUserPlus
+                            onClick={() => sendFrienRequest(result._id)}
+                            size={30}
+                            className="text-blue-500 hover:text-blue-700 cursor-pointer"
+                        />
+                    )}
+
                 </div>
             ))}
         </div>
