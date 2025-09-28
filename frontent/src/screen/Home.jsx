@@ -57,7 +57,7 @@ export default function Home() {
    * send friend request to friend
    */
   const sendFrienRequest = (toId) => {
-    
+
     const payload = {
       from: user._id,
       to: toId
@@ -136,12 +136,19 @@ export default function Home() {
     if (selectedUser) {
 
       const payload = {
-        to: selectedUser.u__id,
-        from: user._id
+        token,
+        data: {
+          to: selectedUser.u__id,
+          from: user._id
+        }
       }
 
       socket.emit("getMessages", payload, (data) => {
-        setMessageList(data);
+        if (data.error) {
+          alert(data.message);
+        }
+        console.log(data);
+        setMessageList(data.savedMessages);
       });
     }
 
@@ -155,7 +162,7 @@ export default function Home() {
       }
       else {
 
-        setFriendList(new Set(data.message.users.map( data => data.u__id)));
+        setFriendList(new Set(data.message.users.map(data => data.u__id)));
         setUserList(data.message.users);
         setLoading(false)
       }

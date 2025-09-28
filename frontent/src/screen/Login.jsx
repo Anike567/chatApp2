@@ -1,18 +1,17 @@
-import React, { useEffect, useState, useContext } from 'react';
-import { SocketContext } from '../store/socketIdContext';
+import React, { useEffect, useState, useContext, useRef } from 'react'
 import Loader from '../components/Loader';
 import { FiX } from 'react-icons/fi';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../store/authContext';
+import { io } from 'socket.io-client';
 
 
 export default function Login() {
   const { authData, setAuthData } = useContext(AuthContext);
-
-  const { socket } = useContext(SocketContext);
   const [message, setMessage] = useState("");
   const [isLoading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const socketRef = useRef(null);
 
   const [user, setUser] = useState({
     username: '',
@@ -32,12 +31,12 @@ export default function Login() {
   const handleSubmit = () => {
     setLoading(true);
 
-    if (!socket) {
+    if (!socketRef.current) {
       console.warn('Socket not connected yet');
       return;
     }
 
-    socket.emit('loginEvent', user, (res) => {
+    socketRef.current.emit('loginEvent', user, (res) => {
       if (res.isLoggedIn) {
         const authData = {
           isLoggedIn: true,
@@ -61,51 +60,15 @@ export default function Login() {
     if (authData.isLoggedIn) {
       navigate('/');
     }
-  })
 
-  useEffect(() => {
-    if (!socket) return;
+    if(!socketRef.current){
+      const newSocket = io('http://192.168.1.44:3000/auth');
+      socketRef.current = newSocket;
+    }
 
-    const handleLoginSuccessEvent = (data) => {
+  },[]);
 
-      const authData = {
-        isLoggedIn: true,
-        user: data.message.user,
-        token: data.message.signedToken
-      }
-
-      setAuthData(authData);
-      localStorage.setItem('user-data', JSON.stringify(authData));
-      navigate('/')
-      setLoading(false);
-    };
-
-    const handleLoginErrorEvent = (data) => {
-      console.error('Login Error:', data);
-      setLoading(false);
-    };
-
-    const handleLoginMessageEvent = (data) => {
-      const msg = typeof data.message === 'string' ? data.message : 'Something went wrong';
-      setMessage(msg);
-      setLoading(false);
-    };
-
-
-    socket.on('loginSuccessEvent', handleLoginSuccessEvent);
-    socket.on('loginErrorEvent', handleLoginErrorEvent);
-    socket.on('loginMessageEvent', handleLoginMessageEvent);
-
-    return () => {
-      socket.off('loginSuccessEvent', handleLoginSuccessEvent);
-      socket.off('loginErrorEvent', handleLoginErrorEvent);
-      socket.off('loginMessageEvent', handleLoginMessageEvent);
-    };
-  }, [socket]);
-
-
-
-
+  
   return (
     <div className="flex h-screen w-screen justify-center items-center bg-blue-50">
       <div className="w-[90%] max-w-md bg-white shadow-xl rounded-xl p-8">

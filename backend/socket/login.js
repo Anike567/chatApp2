@@ -5,6 +5,7 @@ const User = require('../entity/User');
 
 
 const loginHandler = async (userInput, socket, callback) => {
+    console.log(userInput);
     const { username, password } = userInput;
 
     const res = {
@@ -23,6 +24,7 @@ const loginHandler = async (userInput, socket, callback) => {
         return callback(res);
     }
 
+
     try {
         const secretKey = process.env.JWT_SECRET
         const userRepository = AppDataSource.getRepository("User"); 
@@ -38,7 +40,6 @@ const loginHandler = async (userInput, socket, callback) => {
         const isMatch = await comparePassword(password, dbUser.password);
         if (isMatch) {
             const token = jwt.sign({ id: dbUser._id, username: dbUser.username }, secretKey );
-
             res.token = token;
             res.isLoggedIn = true;
             res.message.push('Logged in successfully');

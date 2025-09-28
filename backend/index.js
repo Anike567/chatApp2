@@ -9,6 +9,7 @@ const{closeLoggerStream} = require('./utility/logger.js');
 const saveOfflineMessage = require('./utility/saveMessageForOfflineUser.js');
 
 const messages = require('./entity/messageStore.js');
+const publicHandler = require('./socket/publicSocketHandle.js');
 require('dotenv').config();
 
 const app = express();
@@ -23,6 +24,8 @@ AppDataSource.initialize()
   })
 const server = http.createServer(app);
 
+app.use(cors());
+
 const io = new Server(server,{
     cors:{
         origin :'*',
@@ -32,12 +35,10 @@ const io = new Server(server,{
 
 
 
-app.use(cors());
 
+// seperate public socket connection for authentication and signup
 
-app.use(express.json());
-
-
+publicHandler(io);
 socketHandler(io);
 
 server.listen(3000, () => {
