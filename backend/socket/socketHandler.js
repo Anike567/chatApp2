@@ -54,8 +54,8 @@ const socketHandler = (io) => {
 
 
         socket.on('message-received', async (data, cb) => {
-            console.log(socket.data.token);
             const token = data.token;
+            console.log(token);
             const verifiedToken = verifyToken(token);
             if (verifiedToken) {
                 try {

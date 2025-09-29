@@ -9,7 +9,7 @@ export default function SocketIdContextProvider({ children }) {
   const [socketLoading, setSocketLoading] = useState(true);
 
   useEffect(() => {
-    const newSocket = io('http://192.168.1.44:3000/app');
+    const newSocket = io('http://192.168.137.55:3000/app');
     socketRef.current = newSocket;
 
     if (newSocket.connected) {

@@ -147,7 +147,6 @@ export default function Home() {
         if (data.error) {
           alert(data.message);
         }
-        console.log(data);
         setMessageList(data.savedMessages);
       });
     }
@@ -171,6 +170,7 @@ export default function Home() {
     socket.emit("updateSocketId", { userId: user._id, socketid: socketId });
 
     const handleIncomingMessage = (data) => {
+      console.log(data);
       setMessageList(prev => [...prev, data]);
     };
 
