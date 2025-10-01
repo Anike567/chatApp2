@@ -10,14 +10,20 @@ const { addFriend, findFriendRequest, acceptFriendRequest } = require('./friends
 const { logDetails } = require('../utility/logger');
 const { AppDataSource } = require('./../config/data-source');
 const uuidToBase64UrlSafe = require('./../utility/base64Encoding');
-const verifyToken = require('../utility/verifyToken');
+const authMiddleware = require('./../middleware/auth.middleware');
 
 
 
 
 
 const socketHandler = (io) => {
-    io.of("/app").on('connection', (socket) => {
+
+    const authNamespace = io.of("/app");
+
+
+    authNamespace.use((socket, next) => { authMiddleware(socket, next) });
+
+    authNamespace.on('connection', (socket) => {
         // logDetails(socket);
 
         socket.on('updateSocketId', (data) => {
@@ -31,58 +37,47 @@ const socketHandler = (io) => {
 
 
         socket.on('getMessages', async (data, callback) => {
-            const token = data.token;
-            const verifiedToken = verifyToken(token);
 
-            if (verifiedToken) {
-                const messageRepository = AppDataSource.getRepository("OfflineMessage");
-                const { from, to } = data.data;
-                const savedMessages = await messageRepository.query(
-                    `
+
+            const messageRepository = AppDataSource.getRepository("OfflineMessage");
+            const { from, to } = data.data;
+            const savedMessages = await messageRepository.query(
+                `
                 SELECT * FROM offline_message WHERE (\`from\` = ? AND \`to\` = ?) OR (\`from\` = ? AND \`to\` = ?) order by created_at asc`,
-                    [from, to, to, from]
-                );
-                callback({error : false, savedMessages});
-            }
-
-            else{
-                callback({error : true, message : "Invalid or Expired token please login again"});
-            }
+                [from, to, to, from]
+            );
+            callback({ error: false, savedMessages });
 
 
         });
 
 
         socket.on('message-received', async (data, cb) => {
-            const token = data.token;
-            console.log(token);
-            const verifiedToken = verifyToken(token);
-            if (verifiedToken) {
-                try {
 
-                    data = data.msg;
-                    saveOfflineMessage(data);
-                    const socketId = await master.get(uuidToBase64UrlSafe(data.to));
-                    if (socketId) {
-                        cb({ error: false, status: true });
-                        io.to(socketId).emit('message-received', data);
-                    } else {
-                        cb({ error: false, status: false });
-                    }
+            try {
 
+                data = data.msg;
+                saveOfflineMessage(data);
+                const socketId = await master.get(uuidToBase64UrlSafe(data.to));
 
-                } catch (error) {
-                    cb({ error: true, message: "Internal Server error try again later" });
+                if (socketId) {
+                    authNamespace.to(socketId).emit('message-received', data);
+                    cb({ error: false, status: true });
+
+                } else {
+                    cb({ error: false, status: false });
                 }
+
+
+            } catch (error) {
+                cb({ error: true, message: "Internal Server error try again later" });
             }
-            else {
-                cb({ error: true, message: "Token missing please login again" });
-            }
+
         });
 
 
         //login event handler
-        
+
 
 
 

@@ -174,10 +174,16 @@ export default function Home() {
       setMessageList(prev => [...prev, data]);
     };
 
+    const handleConnectionError = (err)=>{
+      console.log(err.message);
+      alert(err.message);
+    }
     socket.on("message-received", handleIncomingMessage);
+    socket.on("connect_error", handleConnectionError);
 
     return () => {
       socket.off("message-received", handleIncomingMessage);
+      socket.off("connect_error",handleConnectionError);
     };
   }, [socket, token, selectedUser, user._id, socketId]);
 

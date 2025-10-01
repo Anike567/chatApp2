@@ -62,7 +62,7 @@ export default function Login() {
     }
 
     if(!socketRef.current){
-      const newSocket = io('http://192.168.137.55:3000/auth');
+      const newSocket = io('http://192.168.1.44:3000/auth');
       socketRef.current = newSocket;
     }
 
