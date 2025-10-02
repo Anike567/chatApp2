@@ -13,6 +13,7 @@ import MessageInput from "../components/MessageInput";
 import SearchResult from "../components/SearchResult";
 import User from "../components/User";
 import Logout from "../components/Logout";
+import { data } from "react-router-dom";
 
 
 /**
@@ -35,6 +36,7 @@ export default function Home() {
   const [searchRsult, setSearchResult] = useState([]);
   const [selected, setSelected] = useState(null);
   const [friendsList, setFriendList] = useState([]);
+  const [userStatus, setUserStatus] = useState(null);
 
 
   const menuItems = [
@@ -75,6 +77,16 @@ export default function Home() {
     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  const getSelectedUserStatus = () => {
+    socket.emit("heartbeat", { userId: selectedUser.u__id }, (data) => {
+      if (data.error) {
+        alert(data.message);
+        return;
+      }
+
+      setUserStatus(data.data);
+    });
+  }
   // Debounced search logging
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -132,8 +144,10 @@ export default function Home() {
   //Setup socket listeners and fetch initial data
 
   useEffect(() => {
-
+    let intervalId;
     if (selectedUser) {
+      socket.emit("updateSocketId", { userId: user._id, socketid: socketId });
+      getSelectedUserStatus();
 
       const payload = {
         token,
@@ -149,7 +163,16 @@ export default function Home() {
         }
         setMessageList(data.savedMessages);
       });
+
+      // Heartbeat interval
+      intervalId = setInterval(getSelectedUserStatus, 30000);
+
+
     }
+
+    return () => {
+      clearInterval(intervalId); // ✅ cleanup works properly
+    };
 
   }, [selectedUser]);
 
@@ -167,14 +190,14 @@ export default function Home() {
       }
     });
 
-    socket.emit("updateSocketId", { userId: user._id, socketid: socketId });
+
 
     const handleIncomingMessage = (data) => {
       console.log(data);
       setMessageList(prev => [...prev, data]);
     };
 
-    const handleConnectionError = (err)=>{
+    const handleConnectionError = (err) => {
       console.log(err.message);
       alert(err.message);
     }
@@ -183,9 +206,9 @@ export default function Home() {
 
     return () => {
       socket.off("message-received", handleIncomingMessage);
-      socket.off("connect_error",handleConnectionError);
+      socket.off("connect_error", handleConnectionError);
     };
-  }, [socket, token, selectedUser, user._id, socketId]);
+  }, [socket, socketId]);
 
   // Auto-scroll on new messages
   useEffect(() => {
@@ -281,6 +304,7 @@ export default function Home() {
                   key={index}
                   onClick={() => {
                     setSelectedUser(tmpUser);
+                    
                   }}
                   className="flex items-center space-x-4 p-4 cursor-pointer hover:bg-blue-100 transition duration-200"
                 >
@@ -297,7 +321,7 @@ export default function Home() {
         {selectedUser ? (
           <>
             {/* Header */}
-            <SelectedUser user={selectedUser} />
+            <SelectedUser user={selectedUser} userStatus={userStatus} />
 
             {/* Messages */}
 

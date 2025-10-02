@@ -9,8 +9,11 @@ const { findUsername, verifyOtp } = require('./forgetPassword');
 const { addFriend, findFriendRequest, acceptFriendRequest } = require('./friends');
 const { logDetails } = require('../utility/logger');
 const { AppDataSource } = require('./../config/data-source');
-const uuidToBase64UrlSafe = require('./../utility/base64Encoding');
+const onDisconnect = require('./onDisconnect');
+const {uuidToBase64UrlSafe} = require('./../utility/base64Encoding');
 const authMiddleware = require('./../middleware/auth.middleware');
+const updateSocketId = require('./updateSocketId');
+const heartbeat = require('./hearbeat');
 
 
 
@@ -27,10 +30,7 @@ const socketHandler = (io) => {
         // logDetails(socket);
 
         socket.on('updateSocketId', (data) => {
-            let { userId, socketid } = data;
-            userId = uuidToBase64UrlSafe(userId);
-            master.set(userId, socketid);
-            master.set(socket.id, userId);
+            updateSocketId(data);
 
         });
 
@@ -70,6 +70,7 @@ const socketHandler = (io) => {
 
 
             } catch (error) {
+                console.log(error);
                 cb({ error: true, message: "Internal Server error try again later" });
             }
 
@@ -141,19 +142,21 @@ const socketHandler = (io) => {
             acceptFriendRequest(data, cb);
         })
 
+
+        //get selected user status heartbear
+
+        socket.on('heartbeat',(data, cb)=>{
+            heartbeat(data, cb);
+        })
+
         /**
          * @description handle cleanup 
          * @returns {void}
          * @parama {null}
          */
         socket.on('disconnect', async () => {
-
-            const userId = await master.get(socket.id);
-            if (userId) {
-                await master.del(userId);
-                await master.del(socket.id);
-
-            }
+            onDisconnect(socket);
+            
         });
 
     });

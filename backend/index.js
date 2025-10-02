@@ -48,24 +48,24 @@ server.listen(3000, () => {
 
 
 
-["SIGINT", "SIGTERM","uncaughtException", "unhandledRejection"].forEach(signal => {
-  process.on(signal, () => {
-    closeLoggerStream(); 
-    if(messages.length > 0){
-      saveOfflineMessage(messages);
-    }
+// ["SIGINT", "SIGTERM","uncaughtException", "unhandledRejection"].forEach(signal => {
+//   process.on(signal, () => {
+//     closeLoggerStream(); 
+//     if(messages.length > 0){
+//       saveOfflineMessage(messages);
+//     }
 
 
-    if (server) {
-      server.close(() => {
-        console.log(`Server closed successfully due to ${signal}`);
-        process.exit(0);
-      });
-    } else {
-      process.exit(0);
-    }
-  });
-});
+//     if (server) {
+//       server.close(() => {
+//         console.log(`Server closed successfully due to ${signal}`);
+//         process.exit(0);
+//       });
+//     } else {
+//       process.exit(0);
+//     }
+//   });
+// });
 
 
 

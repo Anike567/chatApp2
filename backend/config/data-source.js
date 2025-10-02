@@ -4,6 +4,7 @@ const User = require("./../entity/User");
 const OfflineMessage = require('./../entity/Message');
 const Friends = require('./../entity/friends');
 const FriendsRequest = require('./../entity/friendRequest');
+const UserStatus = require('./../entity/userStatus');
 require('dotenv').config();
 
 const AppDataSource = new DataSource({
@@ -15,7 +16,7 @@ const AppDataSource = new DataSource({
   database: process.env.DB_NAME,
   synchronize: false, 
   logging: false,
-  entities: [User,OfflineMessage, Friends,FriendsRequest], 
+  entities: [User,OfflineMessage, Friends,FriendsRequest, UserStatus], 
   migrations: [],
   subscribers: [],
 });

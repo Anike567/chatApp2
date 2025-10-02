@@ -14,7 +14,7 @@ const getUserHandler = async (data) => {
         const userId = verifiedToken.id;
         const friends = await entityManager
             .createQueryBuilder()
-            .select("u") // select whole user entity
+            .select("u") 
             .from("users", "u")
             .innerJoin("friends", "f", "u._id = f.user1 OR u._id = f.user2")
             .where(":userId IN (f.user1, f.user2)", { userId })

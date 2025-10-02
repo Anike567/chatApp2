@@ -1,7 +1,29 @@
 import React from 'react';
 import { FiPhoneCall, FiUser, FiVideo } from "react-icons/fi";
 
-export default function SelectedUser({ user }) {
+export default function SelectedUser({ user, userStatus }) {
+    console.log(userStatus);
+
+    // Format last seen for display
+    function formatLastSeen(lastSeen) {
+        if (!lastSeen) return "";
+
+        const date = new Date(lastSeen);
+
+        const formattedDate = date.toLocaleDateString([], {
+            day: "2-digit",
+            month: "short", // e.g. Jan, Feb, Mar
+            year: "numeric"
+        });
+
+        const formattedTime = date.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit"
+        });
+
+        return `${formattedDate} ${formattedTime}`;
+    }
+
 
 
     return (
@@ -25,9 +47,21 @@ export default function SelectedUser({ user }) {
                         <FiUser size={24} className="text-gray-700" />
                     )}
                 </div>
-                <p className="text-lg font-semibold text-gray-800">
-                    {user.u_name}
-                </p>
+
+                {/* Name + Status */}
+                <div>
+                    <p className="text-lg font-semibold text-gray-800">{user.u_name}</p>
+                    {!userStatus?.is_online && (
+                        <p className="text-sm text-gray-500">
+                            {formatLastSeen(userStatus?.last_seen)}
+                        </p>
+                    )}
+
+                    {userStatus?.is_online && (
+                        <p className='text-sm text-green-800'>Online</p>
+                    )}
+                </div>
+
             </div>
 
             {/* Right: Action buttons */}
@@ -35,7 +69,6 @@ export default function SelectedUser({ user }) {
                 <FiPhoneCall
                     size={28}
                     className="cursor-pointer text-gray-700 hover:text-green-600"
-
                 />
                 <FiVideo
                     size={30}
