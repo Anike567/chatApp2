@@ -5,6 +5,7 @@ const OfflineMessage = require('./../entity/Message');
 const Friends = require('./../entity/friends');
 const FriendsRequest = require('./../entity/friendRequest');
 const UserStatus = require('./../entity/userStatus');
+const UnsendMessage = require('./../entity/Message');
 require('dotenv').config();
 
 const AppDataSource = new DataSource({

@@ -1,19 +1,16 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import Loader from "../components/Loader";
-import { HiDotsVertical } from "react-icons/hi";
 import { SocketContext } from "../store/socketIdContext";
 import { AuthContext } from "../store/authContext";
-import Modal from "./../components/Modal";
 import UpdateProfile from "../components/UpdateProfile";
 import ForgetPassword from "./ForgetPassword";
 import FriendRequests from "../components/FriendRequests";
 import Message from "../components/Message";
 import SelectedUser from "../components/SelectedUser";
 import MessageInput from "../components/MessageInput";
-import SearchResult from "../components/SearchResult";
 import User from "../components/User";
 import Logout from "../components/Logout";
-import { data } from "react-router-dom";
+import Header from "../components/Header";
 
 
 /**
@@ -25,18 +22,12 @@ export default function Home() {
   const { socket, socketId } = useContext(SocketContext);
   const [isLoading, setLoading] = useState(true);
   const [userList, setUserList] = useState([]);
-  const [searchText, setSearchText] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
   const [message, setMessage] = useState("");
   const [messageList, setMessageList] = useState([]);
-  const [showSetting, setShowSetting] = useState(false);
-  const [settingOption, setSettingOption] = useState(null);
-  const [isOpen, setIsOpen] = useState(false);
   const messageEndRef = useRef(null);
-  const [searchRsult, setSearchResult] = useState([]);
-  const [selected, setSelected] = useState(null);
-  const [friendsList, setFriendList] = useState([]);
   const [userStatus, setUserStatus] = useState(null);
+  const [friendsList, setFriendList] = useState([]);
 
 
   const menuItems = [
@@ -54,20 +45,7 @@ export default function Home() {
   };
 
 
-  /**
-   * 
-   * send friend request to friend
-   */
-  const sendFrienRequest = (toId) => {
-
-    const payload = {
-      from: user._id,
-      to: toId
-    }
-    socket.emit("addFriend", payload, (data) => {
-      console.log(data);
-    })
-  }
+  
 
   /**
    * Scroll chat to the latest message
@@ -88,16 +66,7 @@ export default function Home() {
     });
   }
   // Debounced search logging
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (searchText.trim()) {
-        socket.emit("search", searchText.trim(), (result) => {
-          setSearchResult(result);
-        });
-      }
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [searchText]);
+  
 
 
 
@@ -234,67 +203,7 @@ export default function Home() {
       <div className="w-full sm:w-[22%] h-full bg-gray-100 border border-gray-300 rounded-2xl overflow-hidden shadow-sm">
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="p-5 border-b bg-white shadow-sm">
-            <div className="flex justify-between items-center px-4">
-              <h1 className="text-2xl font-bold text-gray-800 mb-4">Messages</h1>
-              <HiDotsVertical color="black" size={25} className="cursor-pointer" onClick={() => { setShowSetting((prev) => !prev) }} />
-            </div>
-
-            <div className="relative">
-              <input
-                onChange={(e) => setSearchText(e.target.value)}
-                value={searchText}
-                type="text"
-                placeholder="Search by email or username"
-                className="w-full px-3 py-2 border rounded-lg text-black focus:outline-none"
-              />
-
-              {/**
-               * 
-               * popup for setting 
-               * options like upload dp, change dp , delete dp 
-               */}
-
-              {showSetting && (
-                <div
-                  tabIndex={0}
-                  className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-md">
-                  <ul className="flex flex-col text-sm text-gray-700">
-                    {menuItems.map((item) => (
-                      <li
-                        key={item.id}
-                        className={`
-            px-4 py-3 cursor-pointer transition-all rounded-md text-lg text-bold
-            ${selected === item.id
-                            ? "bg-blue-500 text-white shadow-md"
-                            : "hover:bg-blue-50 hover:shadow-md hover:text-blue-600"
-                          }
-          `}
-                        onClick={() => { setSettingOption(item.id); setIsOpen(true) }}
-                        onMouseEnter={() => { setSelected(item.id) }}
-                      >
-                        {item.label}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-
-              )}
-              {settingOption && (
-                <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
-                  {settingComponents[settingOption]}
-                </Modal>
-              )}
-
-              {searchText.trim() && searchRsult.length > 0 && (
-                <SearchResult searchRsult={searchRsult} friendList={friendsList} />
-              )}
-
-
-            </div>
-
-          </div>
+          <Header friendsList = {friendsList}/>
 
           {/* User List */}
           <div className="flex-1 overflow-auto">
