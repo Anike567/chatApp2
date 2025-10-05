@@ -2,7 +2,7 @@
 
 module.exports = new EntitySchema({
     name: "OfflineMessage",
-    tableName: "offline_message",
+    tableName: "messages",
 
     columns: {
         _id: {

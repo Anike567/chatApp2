@@ -2,18 +2,16 @@ const getUserHandler = require('./getUserHandler');
 const loginHandler = require('./login');
 const signupHandler = require('./signup');
 const searchHandler = require("./searchhHandler");
-const saveOfflineMessage = require('./../utility/saveMessageForOfflineUser');
-const { master } = require('./../config/redis');
 const uploadFile = require('./fileHandler');
 const { findUsername, verifyOtp } = require('./forgetPassword');
 const { addFriend, findFriendRequest, acceptFriendRequest } = require('./friends');
 const { logDetails } = require('../utility/logger');
 const { AppDataSource } = require('./../config/data-source');
 const onDisconnect = require('./onDisconnect');
-const {uuidToBase64UrlSafe} = require('./../utility/base64Encoding');
 const authMiddleware = require('./../middleware/auth.middleware');
 const updateSocketId = require('./updateSocketId');
 const heartbeat = require('./hearbeat');
+const sendAndSaveMessages = require('./getMessages');
 
 
 
@@ -43,7 +41,7 @@ const socketHandler = (io) => {
             const { from, to } = data.data;
             const savedMessages = await messageRepository.query(
                 `
-                SELECT * FROM offline_message WHERE (\`from\` = ? AND \`to\` = ?) OR (\`from\` = ? AND \`to\` = ?) order by created_at asc`,
+                SELECT * FROM messages WHERE (\`from\` = ? AND \`to\` = ?) OR (\`from\` = ? AND \`to\` = ?) order by created_at asc`,
                 [from, to, to, from]
             );
             callback({ error: false, savedMessages });
@@ -52,27 +50,9 @@ const socketHandler = (io) => {
         });
 
 
-        socket.on('message-received', async (data, cb) => {
+        socket.on('message-received', (data, cb) => {
 
-            try {
-
-                data = data.msg;
-                saveOfflineMessage(data);
-                const socketId = await master.get(uuidToBase64UrlSafe(data.to));
-
-                if (socketId) {
-                    authNamespace.to(socketId).emit('message-received', data);
-                    cb({ error: false, status: true });
-
-                } else {
-                    cb({ error: false, status: false });
-                }
-
-
-            } catch (error) {
-                console.log(error);
-                cb({ error: true, message: "Internal Server error try again later" });
-            }
+           sendAndSaveMessages(data, cb, authNamespace);
 
         });
 
