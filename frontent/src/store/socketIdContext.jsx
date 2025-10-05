@@ -11,6 +11,7 @@ export default function SocketIdContextProvider({ children }) {
   const [socketLoading, setSocketLoading] = useState(true);
   const { user, token } = useContext(AuthContext).authData;
   const navigate = useNavigate();
+  const socketUrl = import.meta.env.VITE_SOCKET_URL;
 
   useEffect(() => {
     // If no user or token, redirect
@@ -20,7 +21,7 @@ export default function SocketIdContextProvider({ children }) {
     }
 
     // Create socket connection
-    const newSocket = io('http://192.168.1.44:3000/app', {
+    const newSocket = io(`${socketUrl}/app`, {
       auth: { token }
     });
 

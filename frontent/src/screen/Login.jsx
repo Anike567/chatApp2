@@ -12,6 +12,7 @@ export default function Login() {
   const [isLoading, setLoading] = useState(false);
   const navigate = useNavigate();
   const socketRef = useRef(null);
+  const socketUrl = import.meta.env.VITE_SOCKET_URL;
 
   const [user, setUser] = useState({
     username: '',
@@ -62,7 +63,7 @@ export default function Login() {
     }
 
     if(!socketRef.current){
-      const newSocket = io('http://192.168.1.44:3000/auth');
+      const newSocket = io(`${socketUrl}/auth`);
       socketRef.current = newSocket;
     }
 
