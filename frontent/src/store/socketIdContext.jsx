@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 export const SocketContext = createContext();
 
-export default function SocketIdContextProvider({ children }) {
+export  function SocketIdContextProvider({ children }) {
   const socketRef = useRef(null);
   const [socketId, setSocketId] = useState(null);
   const [socketLoading, setSocketLoading] = useState(true);
@@ -29,6 +29,7 @@ export default function SocketIdContextProvider({ children }) {
 
     // When connected, update state
     newSocket.on('connect', () => {
+      newSocket.emit("updateSocketId", { userId: user._id, socketid: newSocket.id });
       setSocketId(newSocket.id);
       setSocketLoading(false);
     });

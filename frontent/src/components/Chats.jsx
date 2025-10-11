@@ -84,7 +84,6 @@ export default function Chats({ selectedUser }) {
     useEffect(() => {
         let intervalId;
         if (selectedUser) {
-            socket.emit("updateSocketId", { userId: user._id, socketid: socketId });
             getSelectedUserStatus();
 
             const payload = {

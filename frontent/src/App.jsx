@@ -4,7 +4,7 @@ import Layout from './screen/Layout';
 import Home from './screen/Home';
 import Login from './screen/Login';
 import ProtectedRoute from './components/ProtectedRoute';
-import SocketIdContextProvider from './store/socketIdContext';
+import {SocketIdContextProvider} from './store/socketIdContext';
 import AuthContextProvider from './store/authContext';
 import Signup from './screen/Signup';
 import ForgetPassword from './screen/ForgetPassword';
