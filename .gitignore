@@ -2,7 +2,7 @@
 node_modules/
 
 # dotenv environment files
-
+.env
 
 # OS-specific files
 .DS_Store
