@@ -4,6 +4,7 @@ import MessageInput from './MessageInput';
 import { SocketContext } from "../store/socketIdContext";
 import { AuthContext } from "../store/authContext";
 import Message from './Message';
+import Loader from './Loader';
 
 
 export default function Chats({ selectedUser }) {
@@ -13,6 +14,7 @@ export default function Chats({ selectedUser }) {
     const { socket, socketId } = useContext(SocketContext);
     const { user, token } = useContext(AuthContext).authData;
     const [messageList, setMessageList] = useState([]);
+    const [isLoading, setLoading] = useState(false);
 
     /**
        * Send a message via socket
@@ -55,7 +57,6 @@ export default function Chats({ selectedUser }) {
     };
 
     const handleIncomingMessage = useCallback((data) => {
-        console.log(data);
         setMessageList(prev => [...prev, data]);
     });
 
@@ -84,7 +85,8 @@ export default function Chats({ selectedUser }) {
     useEffect(() => {
         let intervalId;
         if (selectedUser) {
-            getSelectedUserStatus();
+            
+            setLoading(true);
 
             const payload = {
                 token,
@@ -97,8 +99,12 @@ export default function Chats({ selectedUser }) {
             socket.emit("getMessages", payload, (data) => {
                 if (data.error) {
                     alert(data.message);
+                    setLoading(false);
                 }
                 setMessageList(data.savedMessages);
+                setTimeout(()=>{
+                    setLoading(false);
+                },1000);
             });
 
             // Heartbeat interval
@@ -123,7 +129,13 @@ export default function Chats({ selectedUser }) {
     }, []);
 
 
-
+    if(isLoading){
+        return(
+            <div className="flex-1 h-full bg-gray-50 border border-gray-300 rounded-2xl shadow-sm flex flex-col">
+                <Loader/>
+            </div>
+        )
+    }
 
     return (
         <div className="flex-1 h-full bg-gray-50 border border-gray-300 rounded-2xl shadow-sm flex flex-col">

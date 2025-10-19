@@ -1,4 +1,5 @@
 const loginHandler = require('./login');
+const signupHandler = require('./signup');
 
 const publicHandler = (io)=>{
     
@@ -8,6 +9,8 @@ const publicHandler = (io)=>{
         socket.on('loginEvent', (user, callback) => {
             loginHandler(user, socket, callback);
         });
+
+        socket.on('signupEvent', (data, cb) => { signupHandler(data, cb) });
     })
 
     

@@ -1,8 +1,11 @@
+const messages = require('../entity/messageStore');
 const { AppDataSource } = require('./../config/data-source');
 const UserSchema = require('./../entity/User'); 
 const hashPassword = require('./../utility/hashPassword');
 
-const signupHandler = async (data, socket) => {
+const signupHandler = async (data, cb) => {
+
+    console.log(data);
     let { name, username, email, contact, password } = data;
 
     const emptyEntries = Object.entries({ name, username, email, contact, password })
@@ -11,7 +14,9 @@ const signupHandler = async (data, socket) => {
 
     if (emptyEntries.length > 0) {
         const message = `${emptyEntries.join(', ')} should not be empty`;
-        return socket.emit('signupMessageEvent', { message });
+        cb({error : true, 'message' : message});
+
+        return;
     }
 
     try {
@@ -28,12 +33,12 @@ const signupHandler = async (data, socket) => {
             password,
         };
 
-        await userRepository.save(newUser);
-
-        socket.emit('signupSuccessEvent', { message: 'Signup successful' });
+        // await userRepository.save(newUser);
+        cb({error : false, message : 'Signup successful'})
+        return;
     } catch (error) {
         console.log(error);
-        socket.emit('signupErrorEvent', { error: 'Signup failed' });
+        cb({error : true, message : "Internal Server error occured"});
     }
 };
 

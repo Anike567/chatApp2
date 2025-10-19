@@ -1,26 +1,29 @@
 
-import React, { useEffect, useState, useContext } from 'react';
-import { SocketContext } from '../store/socketIdContext';
+import React, { useEffect, useState, useContext, useRef } from 'react';
 import Loader from '../components/Loader';
 import { FiX } from 'react-icons/fi';
-import { useNavigate,Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { io } from 'socket.io-client';
+import genrateKeysPair from '../utility/generateKeyPairs';
+const socketUrl = import.meta.env.VITE_SOCKET_URL;
 
 
 
 export default function Signup() {
 
-
-    const { socket } = useContext(SocketContext);
+    const socketRef = useRef(null);
     const [message, setMessage] = useState("");
-    const [isLoading, setLoading] = useState(false);
+    const [isLoading, setLoading] = useState(true);
+    const[backgroundProcess,setBackgroundProcess] = useState(false);
+
     const navigate = useNavigate();
 
     const [user, setUser] = useState({
         username: '',
         password: '',
-        name : '',
-        contact : '',
-        email : ''
+        name: '',
+        contact: '',
+        email: ''
     });
 
     const handleChange = (e) => {
@@ -32,51 +35,49 @@ export default function Signup() {
     };
 
     const handleSubmit = () => {
-        setLoading(true);
+        setBackgroundProcess(true);
 
-        if (!socket) {
+        if (!socketRef.current) {
             console.warn('Socket not connected yet');
             return;
         }
-        console.log(user);
-        socket.emit('signupEvent', user);
+
+        socketRef.current.emit('signupEvent', user, (res) => {
+            console.log(res);
+            if(res.error){
+                setMessage(res.message);
+            }
+            else{
+                navigate("/");
+
+                const{publicKey, privateKey} = genrateKeysPair();
+
+                console.log(publicKey);
+                console.log(privateKey);
+            }
+            setBackgroundProcess(false);
+        });
 
     };
 
 
     useEffect(() => {
-        if (!socket) return;
 
-        const handleSignupSuccessEvent = (data) => {
-            console.log('Login Success:', data);
-            navigate('/login')
+        const newSocket = io(`${socketUrl}/auth`);
+        socketRef.current = newSocket;
+        newSocket.on("connect",() => {
             setLoading(false);
-        };
-
-        const handleSignupErrorEvent = (data) => {
-            console.error('Login Error:', data);
-            setLoading(false);
-        };
-
-        const handleSignupMessageEvent = (data) => {
-            console.log(data);
-            const msg = typeof data.message === 'string' ? data.message : 'Something went wrong';
-            console.log('Login Message:', msg);
-            setMessage(msg);
-            setLoading(false);
-        };
+        })
+    }, [])
 
 
-        socket.on('signupSuccessEvent', handleSignupSuccessEvent);
-        socket.on('signupErrorEvent', handleSignupErrorEvent);
-        socket.on('signupMessageEvent', handleSignupMessageEvent);
-
-        return () => {
-            socket.off('signupSuccessEvent', handleSignupSuccessEvent);
-            socket.off('signupErrorEvent', handleSignupErrorEvent);
-            socket.off('signupMessageEvent', handleSignupMessageEvent);
-        };
-    }, [socket]);
+    if (isLoading) {
+        return (
+            <div className="flex h-screen w-screen justify-center items-center bg-white">
+                <Loader />
+            </div>
+        );
+    }
 
 
     return (
@@ -145,7 +146,7 @@ export default function Signup() {
                 </div>
 
                 <div className="text-center">
-                    {isLoading ? <Loader /> : <button
+                    {backgroundProcess ? <Loader /> : <button
                         type="submit"
                         onClick={handleSubmit}
                         className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-6 py-3 rounded-md transition duration-300"

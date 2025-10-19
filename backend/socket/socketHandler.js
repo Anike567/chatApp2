@@ -69,7 +69,7 @@ const socketHandler = (io) => {
         socket.on('verify-otp', (data, cb) => { verifyOtp(data, cb) });
         // signup event handler 
 
-        socket.on('signupEvent', (data) => { signupHandler(data, socket) });
+        
 
         /**
          * @description this will fetch all the users from database

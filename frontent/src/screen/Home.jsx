@@ -3,7 +3,6 @@ import Loader from "../components/Loader";
 import { SocketContext } from "../store/socketIdContext";
 import { AuthContext } from "../store/authContext";
 import User from "../components/User";
-import Logout from "../components/Logout";
 import Header from "../components/Header";
 import Chats from "../components/Chats";
 
