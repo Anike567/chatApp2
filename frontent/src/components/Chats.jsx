@@ -68,7 +68,7 @@ export default function Chats({ selectedUser }) {
                 alert(data.message);
                 return;
             }
-
+            console.log(data.data);
             setUserStatus(data.data);
         });
     });

@@ -2,7 +2,8 @@ import React from 'react';
 import { FiPhoneCall, FiUser, FiVideo } from "react-icons/fi";
 
 export default function SelectedUser({ user, userStatus }) {
-    console.log(userStatus);
+    
+
 
     // Format last seen for display
     function formatLastSeen(lastSeen) {
@@ -12,7 +13,7 @@ export default function SelectedUser({ user, userStatus }) {
 
         const formattedDate = date.toLocaleDateString([], {
             day: "2-digit",
-            month: "short", // e.g. Jan, Feb, Mar
+            month: "short",
             year: "numeric"
         });
 
