@@ -63,6 +63,7 @@ export default function Chats({ selectedUser }) {
 
 
     const getSelectedUserStatus = useCallback(() => {
+        console.log("starts");
         socket.emit("heartbeat", { userId: selectedUser.u__id }, (data) => {
             if (data.error) {
                 alert(data.message);
@@ -70,6 +71,7 @@ export default function Chats({ selectedUser }) {
             }
             console.log(data.data);
             setUserStatus(data.data);
+            console.log("end");
         });
     });
 
@@ -87,6 +89,7 @@ export default function Chats({ selectedUser }) {
         if (selectedUser) {
             
             setLoading(true);
+            setUserStatus(null);
 
             const payload = {
                 token,
@@ -102,9 +105,7 @@ export default function Chats({ selectedUser }) {
                     setLoading(false);
                 }
                 setMessageList(data.savedMessages);
-                setTimeout(()=>{
-                    setLoading(false);
-                },1000);
+                setLoading(false);
             });
 
             // Heartbeat interval

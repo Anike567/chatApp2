@@ -27,9 +27,8 @@ const socketHandler = (io) => {
     authNamespace.on('connection', (socket) => {
         // logDetails(socket);
 
-        socket.on('updateSocketId', (data) => {
-            updateSocketId(data);
-
+        socket.on('updateSocketId', (data, cb) => {
+            updateSocketId(data, cb);
         });
 
 

@@ -8,6 +8,7 @@ import FriendRequests from "../components/FriendRequests";
 import Logout from "../components/Logout";
 import Modal from "./../components/Modal";
 import { SocketContext } from "../store/socketIdContext";
+import Profile from "./Profile";
 
 
 export default function Header({ friendsList }) {
@@ -23,17 +24,19 @@ export default function Header({ friendsList }) {
 
 
     const menuItems = [
-        { id: 1, label: "Change Profile Picture" },
-        { id: 2, label: "Change Password" },
-        { id: 3, label: "Friend Requests" },
-        { id: 4, label: "Logout" },
+        { id: 1, label: "Profile" },
+        { id: 2, label: "Change Profile Picture" },
+        { id: 3, label: "Change Password" },
+        { id: 4, label: "Friend Requests" },
+        { id: 5, label: "Logout" },
     ];
 
     const settingComponents = {
-        1: <UpdateProfile />,
-        2: <ForgetPassword />,
-        3: <FriendRequests />,
-        4: <Logout user={user} />
+        1: <Profile />,
+        2: <UpdateProfile />,
+        3: <ForgetPassword />,
+        4: <FriendRequests />,
+        5: <Logout user={user} />
     };
 
     useEffect(() => {

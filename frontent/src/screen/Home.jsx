@@ -11,6 +11,8 @@ import MessageInput from "../components/MessageInput";
 import User from "../components/User";
 import Header from "../components/Header";
 import Chats from "../components/Chats";
+import Logout from "../components/Logout";
+import Profile from "../components/Profile";
 
 
 /**
@@ -30,22 +32,6 @@ export default function Home() {
   const [friendsList, setFriendList] = useState([]);
 
 
-  const menuItems = [
-    { id: 1, label: "Change Profile Picture" },
-    { id: 2, label: "Change Password" },
-    { id: 3, label: "Friend Requests" },
-    { id: 4, label: "Logout" },
-  ];
-
-  const settingComponents = {
-    1: <UpdateProfile />,
-    2: <ForgetPassword />,
-    3: <FriendRequests />,
-    4: <Logout user={user} />
-  };
-
-
-  
 
   /**
    * Scroll chat to the latest message
@@ -66,7 +52,7 @@ export default function Home() {
     });
   }
   // Debounced search logging
-  
+
 
 
 
@@ -112,7 +98,7 @@ export default function Home() {
 
   //Setup socket listeners and fetch initial data
 
-  
+
   useEffect(() => {
     if (!socket) return;
     socket.emit("getuser", { token }, (data) => {
@@ -132,17 +118,17 @@ export default function Home() {
       console.log(err.message);
       alert(err.message);
     }
-   
+
     socket.on("connect_error", handleConnectionError);
 
     return () => {
-      
+
       socket.off("connect_error", handleConnectionError);
     };
   }, [socket, socketId]);
 
   // Auto-scroll on new messages
- 
+
 
 
   if (isLoading) {
@@ -162,8 +148,8 @@ export default function Home() {
       <div className="w-full sm:w-[22%] h-full bg-gray-100 border border-gray-300 rounded-2xl overflow-hidden shadow-sm">
         <div className="flex flex-col h-full">
           {/* Header */}
-          <Header friendsList = {friendsList}/>
-          <Header friendsList = {friendsList}/>
+
+          <Header friendsList={friendsList} />
 
           {/* User List */}
           <div className="flex-1 overflow-auto">
@@ -173,7 +159,7 @@ export default function Home() {
                   key={index}
                   onClick={() => {
                     setSelectedUser(tmpUser);
-                    
+
                   }}
                   className="flex items-center space-x-4 p-4 cursor-pointer hover:bg-blue-100 transition duration-200"
                 >
@@ -186,7 +172,7 @@ export default function Home() {
       </div>
 
       {/* Chat Panel */}
-      {selectedUser && <Chats selectedUser={selectedUser}/>}
+      {selectedUser && <Chats selectedUser={selectedUser} />}
     </div>
   );
 }

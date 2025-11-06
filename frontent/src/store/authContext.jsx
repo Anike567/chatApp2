@@ -1,25 +1,42 @@
-import { createContext, useEffect, useState } from "react";
+import { createContext, useEffect, useState, useMemo } from "react";
 import Loader from "../components/Loader";
 
-export const AuthContext = createContext();
+const defaultAuth = {
+  isLoggedIn: false,
+  user: null,
+  token: null,
+};
+
+export const AuthContext = createContext({
+  authData: defaultAuth,
+  setAuthData: () => {},
+});
 
 export default function AuthContextProvider({ children }) {
   const [isLoading, setIsLoading] = useState(true);
+  const [authData, setAuthData] = useState(defaultAuth);
 
-  const [authData, setAuthData] = useState({
-    isLoggedIn: false,
-    user: null,
-    token: null,
-  });
-
+  // Restore user data from localStorage
   useEffect(() => {
-    const parsedData = JSON.parse(localStorage.getItem("user-data"));
-
-    if (parsedData) {
-      setAuthData(parsedData);
+    try {
+      const stored = localStorage.getItem("user-data");
+      if (stored) setAuthData(JSON.parse(stored));
+    } catch (err) {
+      console.error("Error parsing user-data:", err);
+      localStorage.removeItem("user-data");
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, []);
+
+  // Persist auth data on change
+  useEffect(() => {
+    if (!isLoading) {
+      localStorage.setItem("user-data", JSON.stringify(authData));
+    }
+  }, [authData, isLoading]);
+
+  const value = useMemo(() => ({ authData, setAuthData }), [authData]);
 
   if (isLoading) {
     return (
@@ -27,12 +44,7 @@ export default function AuthContextProvider({ children }) {
         <Loader />
       </div>
     );
-
   }
 
-  return (
-    <AuthContext.Provider value={{ authData, setAuthData }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
