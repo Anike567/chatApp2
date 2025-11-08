@@ -5,10 +5,10 @@ import React, {
   useState,
   useContext,
   useMemo,
-} from 'react';
+} from "react";
 import { AuthContext } from "../store/authContext";
-import { io } from 'socket.io-client';
-import { useNavigate } from 'react-router-dom';
+import { io } from "socket.io-client";
+import { Link, Navigate } from "react-router-dom";
 
 export const SocketContext = createContext();
 
@@ -16,17 +16,14 @@ export function SocketIdContextProvider({ children }) {
   const socketRef = useRef(null);
   const [socketId, setSocketId] = useState(null);
   const [socketLoading, setSocketLoading] = useState(true);
-  const { user, token } = useContext(AuthContext).authData;
-  const navigate = useNavigate();
+  const { authData, setAuthData } = useContext(AuthContext);
+  const { user, token } = authData;
+  const [isError, setError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const socketUrl = import.meta.env.VITE_SOCKET_URL;
 
   useEffect(() => {
-    // If no user or token, redirect and do not connect
-    if (!user || !token) {
-      return;
-    }
 
-    // Create socket connection
     const newSocket = io(`${socketUrl}/app`, {
       auth: { token },
       reconnection: true,
@@ -36,62 +33,72 @@ export function SocketIdContextProvider({ children }) {
 
     socketRef.current = newSocket;
 
-    // When connected
-    newSocket.on('connect', () => {
-      newSocket.emit('updateSocketId', {
-        userId: user._id,
-        socketid: newSocket.id,
-      }, (data) => {
-        if (data.isUserStatusUpdated) {
-          setSocketId(newSocket.id);
-          setSocketLoading(false);
+    newSocket.on("connect", () => {
+      newSocket.emit(
+        "updateSocketId",
+        { userId: user._id, socketid: newSocket.id },
+        (data) => {
+          if (data.isUserStatusUpdated) {
+            setSocketId(newSocket.id);
+            setSocketLoading(false);
+          } else {
+            alert("Updation failed. Please refresh the window.");
+          }
         }
-        else {
-          alert("Updation failed please try by refreshing the window")
-        }
-      });
+      );
     });
 
-    // When disconnected
-    newSocket.on('disconnect', () => {
+    newSocket.on("disconnect", () => {
       setSocketId(null);
       setSocketLoading(true);
     });
 
-    // Handle connection error (e.g., invalid token)
-    newSocket.on('connect_error', (err) => {
-      console.error('Socket connection error:', err.message);
-
-      // Optional — handle invalid token
+    newSocket.on("connect_error", (err) => {
+      console.error("Socket connection error:", err.message);
+      setAuthData({
+        isLoggedIn: false,
+        user: null,
+        token: null,
+      })
       setSocketLoading(false);
-      navigate('/login'); 
+      setErrorMessage("Invalid or expired token. Please login again.");
+      setError(true);
     });
 
-
-    // Cleanup on unmount or when user/token changes
     return () => {
       if (socketRef.current) {
         socketRef.current.disconnect();
         socketRef.current = null;
       }
     };
-  }, [user, token, socketUrl, navigate]);
+  }, [user, token, socketUrl]);
+
+  const value = useMemo(
+    () => ({
+      socketId,
+      socket: socketRef.current,
+      socketLoading,
+    }),
+    [socketId, socketLoading]
+  );
+
+  if (socketLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-blue-50">
+        <p className="text-black font-semibold text-lg">Connecting...</p>
+      </div>
+    );
+  }
 
 
 
-  useEffect(()=>{
-    if(!user || !token){
-      navigate("/login");
-      return;
-    }
-  },[[user, token, socketLoading, navigate]]);
+  if (isError) {
+    return (
+      <Navigate to="/login" replace />
+    );
+  }
 
-    // Memoize context value to prevent unnecessary re-renders
-  const value = useMemo(() => ({
-    socketId,
-    socket: socketRef.current,
-    socketLoading,
-  }), [socketId, socketLoading]);
+
 
   return (
     <SocketContext.Provider value={value}>
