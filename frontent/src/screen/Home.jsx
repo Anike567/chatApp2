@@ -172,7 +172,7 @@ export default function Home() {
       </div>
 
       {/* Chat Panel */}
-      {selectedUser && <Chats selectedUser={selectedUser} />}
+      {selectedUser && <Chats selectedUser={selectedUser} friendsList={userList} />}
     </div>
   );
 }
