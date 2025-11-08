@@ -32,20 +32,29 @@ const getMessages = async (data, callback) => {
     try {
         const messageRepository = AppDataSource.getRepository("OfflineMessage");
         const { from, to } = data.data;
+
         const savedMessages = await messageRepository.query(
             `
-        SELECT * FROM messages WHERE (\`from\` = ? AND \`to\` = ?) OR (\`from\` = ? AND \`to\` = ?) order by created_at asc`,
+            SELECT * FROM (
+                SELECT * FROM messages
+                WHERE (\`from\` = ? AND \`to\` = ?)
+                   OR (\`from\` = ? AND \`to\` = ?)
+                ORDER BY created_at DESC
+                LIMIT 50
+            ) AS recent_messages
+            ORDER BY created_at ASC;
+            `,
             [from, to, to, from]
         );
+        
         callback({ error: false, savedMessages });
-        return;
+    } catch (err) {
+        console.error(err);
+        callback({
+            error: true,
+            message: "Something went wrong, please try again later",
+        });
     }
-    catch(err){
-        console.log(err);
-        callback({error : true, message : "Something went wrong please try again later"});
-        return;
-    }
-
-}
+};
 
 module.exports = { sendAndSaveMessages, getMessages }

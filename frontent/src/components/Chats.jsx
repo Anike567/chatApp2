@@ -102,6 +102,7 @@ export default function Chats({ selectedUser }) {
             socket.emit("getMessages", payload, (data) => {
                 if (data.error) {
                     alert(data.message);
+                    setMessageList([data.message]);
                     setLoading(false);
                 }
                 setMessageList(data.savedMessages);
