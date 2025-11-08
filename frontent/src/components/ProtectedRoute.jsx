@@ -6,11 +6,12 @@ import Loader from './Loader';
 
 export default function ProtectedRoute({ children }) {
   const { authData } = useContext(AuthContext);
-  const { socketLoading } = useContext(SocketContext); 
+  
 
-  if (socketLoading) return <Loader />;
-
-  if (!authData?.isLoggedIn) return <Navigate to="/login" />;
+  if (!authData?.isLoggedIn || !authData.user || !authData.token) {
+    
+    return <Navigate to="/login" replace />;
+  }
 
   return children;
 }

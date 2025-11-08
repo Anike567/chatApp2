@@ -6,12 +6,12 @@ const uploadFile = require('./fileHandler');
 const { findUsername, verifyOtp } = require('./forgetPassword');
 const { addFriend, findFriendRequest, acceptFriendRequest } = require('./friends');
 const { logDetails } = require('../utility/logger');
-const { AppDataSource } = require('./../config/data-source');
+
 const onDisconnect = require('./onDisconnect');
 const authMiddleware = require('./../middleware/auth.middleware');
 const updateSocketId = require('./updateSocketId');
 const heartbeat = require('./hearbeat');
-const sendAndSaveMessages = require('./getMessages');
+const {sendAndSaveMessages, getMessages} = require('./messages');
 
 
 
@@ -34,18 +34,7 @@ const socketHandler = (io) => {
 
 
         socket.on('getMessages', async (data, callback) => {
-
-
-            const messageRepository = AppDataSource.getRepository("OfflineMessage");
-            const { from, to } = data.data;
-            const savedMessages = await messageRepository.query(
-                `
-                SELECT * FROM messages WHERE (\`from\` = ? AND \`to\` = ?) OR (\`from\` = ? AND \`to\` = ?) order by created_at asc`,
-                [from, to, to, from]
-            );
-            callback({ error: false, savedMessages });
-
-
+            getMessages(data, callback);
         });
 
 
