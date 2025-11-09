@@ -15,7 +15,7 @@ const heartbeat = async (data, cb) => {
             where: { user_id: In (data.usersId) },
            
         });
-        console.log(usersStatus);
+        
         cb({ error: false, data: usersStatus });
     } catch (err) {
         console.error("Heartbeat error:", err);
