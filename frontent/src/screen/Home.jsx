@@ -17,6 +17,11 @@ export default function Home() {
 
   const userStatusRefs = useRef(new Map(userList.map(friend => [friend.u__id, null])));
 
+  const handleIncomingMessage = useCallback((data) => {
+    console.log(data);
+    setMessageList((prev) => [...prev, data]);
+  }, []);
+
   // ✅ Fetch all user statuses (heartbeat)
 
   const getAllUserStatuses = useCallback(() => {
@@ -50,7 +55,7 @@ export default function Home() {
         alert(data.message);
       } else {
         setFriendList(data.message.users.map(u => u.u__id));
-        setUserList(data.message.users);
+        setUserList(data.message.users.map(user => ({...user,msgCount:0})));
         setLoading(false);
       }
     });
@@ -83,7 +88,7 @@ export default function Home() {
 
                 className="flex items-center space-x-4 p-4 cursor-pointer hover:bg-blue-100 transition duration-200"
               >
-                <User tmpUser={tmpUser} user={user} />
+                <User tmpUser={tmpUser} user={user} setUserList = {setUserList}/>
               </div>
             ))}
           </div>
