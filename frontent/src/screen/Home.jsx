@@ -32,9 +32,10 @@ export default function Home() {
       data.data.forEach(status => {
         userStatusRefs.current.set(status.user_id, status);
       });
-
+      
       if (selectedUser) {
         let newStatus = userStatusRefs.current.get(selectedUser.u__id);
+        console.log(newStatus , userStatus);
         if (userStatus !== newStatus) {
           setUserStatus(newStatus);
         }
