@@ -42,6 +42,7 @@ export default function Chats({ selectedUser, userStatus }) {
   }, [message, selectedUser, socket, token, user]);
 
   const handleIncomingMessage = useCallback((data) => {
+    console.log(data);
     setMessageList((prev) => [...prev, data]);
   }, []);
 
