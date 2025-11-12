@@ -14,13 +14,28 @@ export default function Home() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [friendsList, setFriendList] = useState([]);
   const [userStatus, setUserStatus] = useState(null);
+  const [messageList, setMessageList] = useState([]);
 
   const userStatusRefs = useRef(new Map(userList.map(friend => [friend.u__id, null])));
 
   const handleIncomingMessage = useCallback((data) => {
-    console.log(data);
-    setMessageList((prev) => [...prev, data]);
-  }, []);
+
+    if (!selectedUser || data.from !== selectedUser.u__id) {
+      setUserList((prevList) =>
+        prevList.map(user =>
+          user.u__id === data.from
+            ? { ...user, msgCount: (user.msgCount || 0) + 1 }
+            : user
+        )
+      );
+    }
+
+    if (selectedUser.u__id === data.from) {
+      setMessageList(prev => [...prev, data]);
+    }
+
+  }, [selectedUser]);
+
 
   // ✅ Fetch all user statuses (heartbeat)
 
@@ -37,10 +52,10 @@ export default function Home() {
       data.data.forEach(status => {
         userStatusRefs.current.set(status.user_id, status);
       });
-      
+
       if (selectedUser) {
         let newStatus = userStatusRefs.current.get(selectedUser.u__id);
-        console.log(newStatus , userStatus);
+
         if (userStatus !== newStatus) {
           setUserStatus(newStatus);
         }
@@ -55,11 +70,18 @@ export default function Home() {
         alert(data.message);
       } else {
         setFriendList(data.message.users.map(u => u.u__id));
-        setUserList(data.message.users.map(user => ({...user,msgCount:0})));
+        setUserList(data.message.users.map(user => ({ ...user, msgCount: 0 })));
         setLoading(false);
       }
     });
-  }, [socket, socketId]);
+
+    socket.on("message-received", handleIncomingMessage);
+    return () => {
+      socket.off("message-received", handleIncomingMessage);
+    };
+
+
+  }, [socket, socketId, selectedUser]);
 
   useEffect(() => {
     const intervalId = setInterval(getAllUserStatuses, 3000);
@@ -84,11 +106,24 @@ export default function Home() {
             {userList.map((tmpUser, index) => (
               <div
                 key={index}
-                onClick={() => { setSelectedUser(tmpUser); setUserStatus(userStatusRefs.current.get(tmpUser.u__id)) }}
+
+                onClick={() => {
+                  if (!selectedUser || tmpUser.u__id !== selectedUser.u__id) {
+                    setSelectedUser(tmpUser);
+                    setUserStatus(userStatusRefs.current.get(tmpUser.u__id));
+
+                    // Reset unread count for this user
+                    setUserList(prev =>
+                      prev.map((u, i) =>
+                        i === index ? { ...u, msgCount: 0 } : u
+                      )
+                    );
+                  }
+                }}
 
                 className="flex items-center space-x-4 p-4 cursor-pointer hover:bg-blue-100 transition duration-200"
               >
-                <User tmpUser={tmpUser} user={user} setUserList = {setUserList}/>
+                <User tmpUser={tmpUser} user={user} setUserList={setUserList} />
               </div>
             ))}
           </div>
@@ -100,6 +135,8 @@ export default function Home() {
         <Chats
           selectedUser={selectedUser}
           userStatus={userStatus}
+          messageList={messageList}
+          setMessageList={setMessageList}
         />
       )}
     </div>

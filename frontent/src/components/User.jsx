@@ -1,7 +1,8 @@
 import React from 'react'
 import { FiUser } from 'react-icons/fi';
 
-export default function User({ tmpUser, user, msgCount }) {
+export default function User({ tmpUser, user, }) {
+
     return (
         <>
             <div className="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden">
@@ -27,9 +28,9 @@ export default function User({ tmpUser, user, msgCount }) {
                     {tmpUser.u_email === user.email ? "You" : tmpUser.u_name}
                 </p>
 
-                {msgCount > 0 && (
+                {tmpUser.msgCount > 0 && (
                     <span className="bg-green-100 text-green-800 text-sm font-medium px-2 py-0.5 rounded-full shadow-sm">
-                        {msgCount}
+                        {tmpUser.msgCount}
                     </span>
                 )}
             </div>
