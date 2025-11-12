@@ -6,9 +6,9 @@ import { AuthContext } from "../store/authContext";
 import Message from "./Message";
 import Loader from "./Loader";
 
-export default function Chats({ selectedUser, userStatus }) {
+export default function Chats({ selectedUser, userStatus, messageList, setMessageList }) {
   const [message, setMessage] = useState("");
-  const [messageList, setMessageList] = useState([]);
+
   const [isLoading, setLoading] = useState(false);
   const messageEndRef = useRef(null);
   const { socket } = useContext(SocketContext);
@@ -41,10 +41,7 @@ export default function Chats({ selectedUser, userStatus }) {
     }
   }, [message, selectedUser, socket, token, user]);
 
-  const handleIncomingMessage = useCallback((data) => {
-    console.log(data);
-    setMessageList((prev) => [...prev, data]);
-  }, []);
+
 
   useEffect(() => {
     if (!selectedUser) return;
@@ -66,24 +63,11 @@ export default function Chats({ selectedUser, userStatus }) {
     });
   }, [selectedUser, socket, token, user]);
 
-  useEffect(() => {
-    socket.on("message-received", handleIncomingMessage);
-    return () => {
-      socket.off("message-received", handleIncomingMessage);
-    };
-  }, [handleIncomingMessage, socket]);
 
   useEffect(() => {
     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messageList]);
 
-  if (isLoading) {
-    return (
-      <div className="flex-1 h-full bg-gray-50 border border-gray-300 rounded-2xl shadow-sm flex flex-col">
-        <Loader />
-      </div>
-    );
-  }
 
 
   return (
@@ -93,9 +77,15 @@ export default function Chats({ selectedUser, userStatus }) {
           <SelectedUser user={selectedUser} userStatus={userStatus} />
 
           <div className="flex-1 p-6 overflow-auto space-y-3">
-            {messageList.map((msg, index) => (
-              <Message key={index} msg={msg} user={user} />
-            ))}
+            {isLoading ? (
+              <div className="flex justify-center items-center h-full">
+                <Loader />
+              </div>
+            ) : (
+              messageList.map((msg, index) => (
+                <Message key={index} msg={msg} user={user} />
+              ))
+            )}
             <div ref={messageEndRef}></div>
           </div>
 
