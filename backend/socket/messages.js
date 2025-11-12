@@ -56,4 +56,5 @@ const getMessages = async (data, callback) => {
         });
     }
 };
+
 module.exports = { sendAndSaveMessages, getMessages }
