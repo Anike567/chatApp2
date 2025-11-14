@@ -1,6 +1,4 @@
 const getUserHandler = require('./getUserHandler');
-const loginHandler = require('./login');
-const signupHandler = require('./signup');
 const searchHandler = require("./searchhHandler");
 const uploadFile = require('./fileHandler');
 const { findUsername, verifyOtp } = require('./forgetPassword');
@@ -26,6 +24,8 @@ const socketHandler = (io) => {
 
     authNamespace.on('connection', (socket) => {
         // logDetails(socket);
+
+        console.log(`${socket.id } is connected on server running on 3000`);
 
         socket.on('updateSocketId', (data, cb) => {
             updateSocketId(data, cb);

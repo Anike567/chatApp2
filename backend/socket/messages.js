@@ -15,6 +15,7 @@ const sendAndSaveMessages = async (data, cb, authNamespace) => {
             cb({ error: false, status: true });
 
         } else {
+            
             cb({ error: false, status: false });
         }
 
