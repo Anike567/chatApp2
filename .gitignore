@@ -18,4 +18,4 @@ build/
 
 # Optional: VSCode config
 .vscode/
-dist/
+dist/vertical-align: middle

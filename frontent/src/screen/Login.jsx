@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext, useRef } from 'react'
+import{ useEffect, useState, useContext, useRef } from 'react'
 import Loader from '../components/Loader';
 import { FiX } from 'react-icons/fi';
 import { useNavigate, Link } from 'react-router-dom';
@@ -30,6 +30,21 @@ export default function Login() {
 
 
   const handleSubmit = () => {
+    if(isLoading) return;
+
+    if(!user){
+      setMessage("Username and Password should not be empty");
+      return;
+    }
+    else if(!user.username){
+      setMessage("Username should not be empty");
+      return;
+    }
+    else if(!user.password){
+      setMessage("Password should not be empty");
+      return;
+    }
+
     setLoading(true);
 
     if (!socketRef.current) {
@@ -63,7 +78,9 @@ export default function Login() {
     }
 
     if(!socketRef.current){
-      const newSocket = io(`${socketUrl}/auth`);
+      const newSocket = io(`${socketUrl}/auth`,{
+        path : '/socket.io'
+      });
       socketRef.current = newSocket;
     }
 
