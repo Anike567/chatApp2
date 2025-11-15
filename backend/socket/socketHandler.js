@@ -25,13 +25,9 @@ const socketHandler = (io) => {
 
     subClient.on("message", async(channel, msg)=>{
         const message = JSON.parse(msg);
-        console.log(message);
-
-        const {socketId, data} = message;
-        
-
+        const {socketId, payload} = message;
         if(authNamespace.sockets.has(socketId)){
-            authNamespace.to(socketId).emit("message-received", data);
+            authNamespace.to(socketId).emit("message-received", payload);
         }
     })
 
