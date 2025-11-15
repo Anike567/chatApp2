@@ -10,6 +10,7 @@ const authMiddleware = require('./../middleware/auth.middleware');
 const updateSocketId = require('./updateSocketId');
 const heartbeat = require('./hearbeat');
 const {sendAndSaveMessages, getMessages} = require('./messages');
+const {subClient} = require ('./../config/redis');
 
 
 
@@ -22,10 +23,22 @@ const socketHandler = (io) => {
 
     authNamespace.use((socket, next) => { authMiddleware(socket, next) });
 
+    subClient.on("message", async(channel, msg)=>{
+        const message = JSON.parse(msg);
+        console.log(message);
+
+        const {socketId, data} = message;
+        
+
+        if(authNamespace.sockets.has(socketId)){
+            authNamespace.to(socketId).emit("message-received", data);
+        }
+    })
+
     authNamespace.on('connection', (socket) => {
         // logDetails(socket);
 
-        console.log(`${socket.id } is connected on server running on 3000`);
+        console.log(`${socket.id } is connected on server running on 4000`);
 
         socket.on('updateSocketId', (data, cb) => {
             updateSocketId(data, cb);

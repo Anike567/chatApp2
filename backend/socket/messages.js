@@ -2,6 +2,7 @@ const saveOfflineMessage = require('../utility/saveMessageForOfflineUser');
 const { master } = require('../config/redis');
 const { uuidToBase64UrlSafe, base64UrlSafeToUuid } = require('../utility/base64Encoding');
 const { AppDataSource } = require('./../config/data-source');
+const { pubClient } = require('./../config/redis');
 const sendAndSaveMessages = async (data, cb, authNamespace) => {
 
     try {
@@ -9,16 +10,24 @@ const sendAndSaveMessages = async (data, cb, authNamespace) => {
         data = data.msg;
         saveOfflineMessage(data);
         const socketId = await master.get(uuidToBase64UrlSafe(data.to));
-
-        if (socketId) {
-            authNamespace.to(socketId).emit('message-received', data);
-            cb({ error: false, status: true });
-
-        } else {
-            
+        if(!socketId){
             cb({ error: false, status: false });
+            return;
         }
 
+        if (socketId) {
+            if (authNamespace.sockets.has(socketId)) {
+                authNamespace.to(socketId).emit('message-received', data);
+                
+            }
+            else{
+                pubClient.publish("global_channel",JSON.stringify({
+                    'socketId' : socketId,
+                    payload : data
+                }));
+            }
+            cb({ error: false, status: true });
+        } 
         return;
 
     } catch (error) {
@@ -47,7 +56,7 @@ const getMessages = async (data, callback) => {
             `,
             [from, to, to, from]
         );
-        
+
         callback({ error: false, savedMessages });
     } catch (err) {
         console.error(err);
