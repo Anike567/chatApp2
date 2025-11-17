@@ -16,18 +16,24 @@ export default function Home() {
   const [userStatus, setUserStatus] = useState(null);
   const [messageList, setMessageList] = useState([]);
 
-  const userStatusRefs = useRef(new Map(userList.map(friend => [friend.u__id, null])));
+  const userStatusRefs = useRef(new Map());
 
   const handleIncomingMessage = useCallback((data) => {
 
     if (!selectedUser || data.from !== selectedUser.u__id) {
-      setUserList((prevList) =>
-        prevList.map(user =>
+
+      setUserList((prevList) => {
+        const newUserList = prevList.map(user =>
           user.u__id === data.from
             ? { ...user, msgCount: (user.msgCount || 0) + 1 }
             : user
         )
-      );
+
+        newUserList.sort((a, b) => (b.msgCount - a.msgCount));
+        return newUserList
+
+      });
+      return;
     }
 
     if (selectedUser.u__id === data.from) {
@@ -69,8 +75,12 @@ export default function Home() {
       if (data.error) {
         alert(data.message);
       } else {
-        setFriendList(data.message.users.map(u => u.u__id));
-        setUserList(data.message.users.map(user => ({ ...user, msgCount: 0 })));
+        const users = data.message.users;
+        userStatusRefs.current = new Map(users.map(friend => [friend.u__id, null]));
+
+        setFriendList(users.map(u => u.u__id));
+
+        setUserList(users.map(user => ({...user, msgCount : 0})));
         setLoading(false);
       }
     });
@@ -111,12 +121,8 @@ export default function Home() {
                   if (!selectedUser || tmpUser.u__id !== selectedUser.u__id) {
                     setSelectedUser(tmpUser);
                     setUserStatus(userStatusRefs.current.get(tmpUser.u__id));
-
-                    // Reset unread count for this user
                     setUserList(prev =>
-                      prev.map((u, i) =>
-                        i === index ? { ...u, msgCount: 0 } : u
-                      )
+                    [...prev]
                     );
                   }
                 }}
