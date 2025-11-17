@@ -11,10 +11,7 @@ const updateSocketId = require('./updateSocketId');
 const heartbeat = require('./hearbeat');
 const {sendAndSaveMessages, getMessages} = require('./messages');
 const {subClient} = require ('./../config/redis');
-
-
-
-
+const SERVER_ID = process.env.SERVER_ID;
 
 const socketHandler = (io) => {
 
@@ -25,7 +22,12 @@ const socketHandler = (io) => {
 
     subClient.on("message", async(channel, msg)=>{
         const message = JSON.parse(msg);
-        const {socketId, payload} = message;
+        const {serverId, socketId, payload} = message;
+
+        if(serverId === SERVER_ID){
+            return;
+        }
+
         if(authNamespace.sockets.has(socketId)){
             authNamespace.to(socketId).emit("message-received", payload);
         }

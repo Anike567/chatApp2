@@ -3,6 +3,7 @@ const { master } = require('../config/redis');
 const { uuidToBase64UrlSafe, base64UrlSafeToUuid } = require('../utility/base64Encoding');
 const { AppDataSource } = require('./../config/data-source');
 const { pubClient } = require('./../config/redis');
+const SERVER_ID = process.env.SERVER_ID;
 const sendAndSaveMessages = async (data, cb, authNamespace) => {
 
     try {
@@ -22,6 +23,7 @@ const sendAndSaveMessages = async (data, cb, authNamespace) => {
             }
             else{
                 pubClient.publish("global_channel",JSON.stringify({
+                    serverId : SERVER_ID,
                     'socketId' : socketId,
                     payload : data
                 }));
