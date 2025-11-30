@@ -49,8 +49,8 @@ master.on("error", (err) => console.error("Redis error:", err));
 publicHandler(io);
 socketHandler(io);
 
-server.listen(3000, () => {
-    console.log('Server is up and running on port 3000');
+server.listen(4000, () => {
+    console.log('Server is up and running on port 4000');
 });
 
 
