@@ -9,7 +9,7 @@ const onDisconnect = require('./onDisconnect');
 const authMiddleware = require('./../middleware/auth.middleware');
 const updateSocketId = require('./updateSocketId');
 const heartbeat = require('./hearbeat');
-const {sendAndSaveMessages, getMessages} = require('./messages');
+const {sendAndSaveMessages, getMessages, deleteMessage, editMessage} = require('./messages');
 const {subClient} = require ('./../config/redis');
 const SERVER_ID = process.env.SERVER_ID;
 
@@ -54,12 +54,12 @@ const socketHandler = (io) => {
            sendAndSaveMessages(data, cb, authNamespace);
 
         });
+        // delete messge handler 
 
+        socket.on('delete-message',(data, cb)=>{deleteMessage(data, cb)});
 
-        //login event handler
-
-
-
+        // edit message handler
+        socket.on('edit-message', (data, cb)=>{editMessage(data, cb)})
 
         //forget Password section
 

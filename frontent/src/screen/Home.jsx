@@ -80,7 +80,7 @@ export default function Home() {
 
         setFriendList(users.map(u => u.u__id));
 
-        setUserList(users.map(user => ({...user, msgCount : 0})));
+        setUserList(users.map(user => ({ ...user, msgCount: 0 })));
         setLoading(false);
       }
     });
@@ -111,7 +111,9 @@ export default function Home() {
       {/* Sidebar */}
       <div className="w-full sm:w-[22%] h-full bg-gray-100 border border-gray-300 rounded-2xl overflow-hidden shadow-sm">
         <div className="flex flex-col h-full">
+
           <Header friendsList={friendsList} />
+
           <div className="flex-1 overflow-auto">
             {userList.map((tmpUser, index) => (
               <div
@@ -121,9 +123,10 @@ export default function Home() {
                   if (!selectedUser || tmpUser.u__id !== selectedUser.u__id) {
                     setSelectedUser(tmpUser);
                     setUserStatus(userStatusRefs.current.get(tmpUser.u__id));
-                    setUserList(prev =>
-                    [...prev]
-                    );
+                    setUserList((prev)=>{
+                      prev[index].msgCount = 0;
+                      return [...prev];
+                    })
                   }
                 }}
 
