@@ -83,7 +83,7 @@ export default function Chats({ selectedUser, userStatus, messageList, setMessag
               </div>
             ) : (
               messageList.map((msg, index) => (
-                <Message key={index} msg={msg} user={user} />
+                <Message key={index} index = {index} msg={msg} user={user} setMessageList = {setMessageList} />
               ))
             )}
             <div ref={messageEndRef}></div>

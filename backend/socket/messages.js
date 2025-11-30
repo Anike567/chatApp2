@@ -11,7 +11,7 @@ const sendAndSaveMessages = async (data, cb, authNamespace) => {
         data = data.msg;
         saveOfflineMessage(data);
         const socketId = await master.get(uuidToBase64UrlSafe(data.to));
-        if(!socketId){
+        if (!socketId) {
             cb({ error: false, status: false });
             return;
         }
@@ -19,17 +19,17 @@ const sendAndSaveMessages = async (data, cb, authNamespace) => {
         if (socketId) {
             if (authNamespace.sockets.has(socketId)) {
                 authNamespace.to(socketId).emit('message-received', data);
-                
+
             }
-            else{
-                pubClient.publish("global_channel",JSON.stringify({
-                    serverId : SERVER_ID,
-                    'socketId' : socketId,
-                    payload : data
+            else {
+                pubClient.publish("global_channel", JSON.stringify({
+                    serverId: SERVER_ID,
+                    'socketId': socketId,
+                    payload: data
                 }));
             }
             cb({ error: false, status: true });
-        } 
+        }
         return;
 
     } catch (error) {
@@ -69,4 +69,68 @@ const getMessages = async (data, callback) => {
     }
 };
 
-module.exports = { sendAndSaveMessages, getMessages }
+const deleteMessage = async (data, cb) => {
+    const messageRepository = AppDataSource.getRepository("OfflineMessage");
+    const { msgId } = data;
+
+    try {
+        const result = await messageRepository.delete({ _id: msgId });
+
+        if (result.affected === 0) {
+            return cb({
+                error: true,
+                status: 404,
+                message: "Message not found",
+            });
+        }
+
+        cb({
+            error: false,
+            status: 200,
+            message: "Message deleted successfully",
+        });
+
+    } catch (err) {
+        console.log("Delete error:", err);
+
+        cb({
+            error: true,
+            status: 500,
+            message: "Something went wrong, please try again later",
+        });
+    }
+};
+
+const editMessage = async (data, cb) => {
+    const { msgId, msg } = data;
+    const messageRepository = AppDataSource.getRepository("OfflineMessage");
+    try {
+        const result = await messageRepository.update(
+            { _id: msgId },
+            { message: msg }
+        );
+
+        if (result.affected === 0) {
+            return cb({
+                error: true,
+                status: 404,
+                message: "Message not found",
+            });
+        }
+        cb({
+            error: false,
+            status: 200,
+            message: "Message deleted successfully",
+        });
+
+    } catch (error) {
+        console.error(err);
+        callback({
+            error: true,
+            message: "Something went wrong, please try again later",
+        });
+    }
+};
+
+
+module.exports = { sendAndSaveMessages, getMessages, deleteMessage, editMessage}
