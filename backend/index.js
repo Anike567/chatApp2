@@ -6,12 +6,16 @@ const socketHandler = require('./socket/socketHandler.js');
 const { AppDataSource } = require('./config/data-source.js');
 const publicHandler = require('./socket/publicSocketHandle.js');
 const { master, pubClient, subClient } = require('./config/redis.js');
-const { connectToRabbitMqServer } = require('./config/rabbitMq.js');
+const { connectToRabbitMqServer, initRabbitPublisher } = require('./config/rabbitMq.js');
+const {connectConsumer} = require('./config/rabbitConsumer.js');
+const { messageScheduler } = require('./utility/messageScheduler.js');
+
+
+
 const streamName = "sent-messages";
 const streamSizeRetention = 5 * 1e9;
 
 let rabbitmqClient;
-let publisher;
 require('dotenv').config();
 
 const app = express();
@@ -20,6 +24,7 @@ const app = express();
 AppDataSource.initialize()
   .then(() => {
     console.log("connected to database successully");
+    messageScheduler();
   })
   .catch((err) => {
     console.log(err);
@@ -48,9 +53,16 @@ pubClient.on("connect", () => {
 })
 
 master.on("error", (err) => console.error("Redis error:", err));
+//save messages in batch
+
+
 
 //connect to rabbitmq server 
 
+//consumer
+connectConsumer()
+
+//Producer
 connectToRabbitMqServer()
   .then(async (client) => {
     console.log("connected to rabbitMq server successfully");
@@ -58,21 +70,17 @@ connectToRabbitMqServer()
     rabbitmqClient = client;
 
     // Create stream
-    await rabbitmqClient.createStream({
+    await client.createStream({
       stream: streamName,
       arguments: { "max-length-bytes": streamSizeRetention }
     });
-
-    // Create publisher
-    publisher = await rabbitmqClient.declarePublisher({
-      stream: streamName
-    });
-
-    console.log("RabbitMQ stream ready");
+    await initRabbitPublisher();
   })
   .catch((err) => {
     console.log("RabbitMQ error:", err);
   });
+
+
 // seperate public socket connection for authentication and signup
 
 publicHandler(io);
@@ -85,4 +93,8 @@ server.listen(4000, () => {
 
 
 
-module.exports = {publisher};
+module.exports.publisher = async()=>{
+  await rabbitmqClient.declarePublisher({
+      stream: streamName
+    });
+};

@@ -1,20 +1,23 @@
+const { commitProcessedMessages } = require('../config/rabbitConsumer');
 const { AppDataSource } = require('./../config/data-source');
 
-const saveOfflineMessage = async (msg) => {
+
+const saveOfflineMessage = async (messages) => {
     try {
         const messageRepository = AppDataSource.getRepository("OfflineMessage");
 
-        // Map payload array to entity objects
-        const newMessages ={
+        const newMessages = messages.map(msg => ({
             to_user: msg.to,
             from_user: msg.from,
             delivered: msg.delivered ?? null,
             message: msg.message,
-        };
+        }));
 
-        // Save all at once (TypeORM supports array save)
+        console.log("Saving messages:", newMessages);
         const savedMessages = await messageRepository.save(newMessages);
-
+        if(savedMessages){
+            commitProcessedMessages();
+        }
         return savedMessages;
     } catch (err) {
         console.error("Error saving offline messages:", err);
