@@ -3,13 +3,14 @@ const { master } = require('../config/redis');
 const { uuidToBase64UrlSafe, base64UrlSafeToUuid } = require('../utility/base64Encoding');
 const { AppDataSource } = require('./../config/data-source');
 const { pubClient } = require('./../config/redis');
+const {publisher} = require('./../index');
 const SERVER_ID = process.env.SERVER_ID;
 const sendAndSaveMessages = async (data, cb, authNamespace) => {
 
     try {
 
         data = data.msg;
-        saveOfflineMessage(data);
+        await publisher.send(Buffer.from(JSON.stringify((data))));
         const socketId = await master.get(uuidToBase64UrlSafe(data.to));
         if(!socketId){
             cb({ error: false, status: false });
