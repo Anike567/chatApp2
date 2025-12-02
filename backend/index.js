@@ -6,9 +6,8 @@ const socketHandler = require('./socket/socketHandler.js');
 const { AppDataSource } = require('./config/data-source.js');
 const publicHandler = require('./socket/publicSocketHandle.js');
 const { master, pubClient, subClient } = require('./config/redis.js');
-const { connectToRabbitMqServer, initRabbitPublisher } = require('./config/rabbitMq.js');
-const {connectConsumer} = require('./config/rabbitConsumer.js');
 const { messageScheduler } = require('./utility/messageScheduler.js');
+const { connectToRabbitQueue } = require('./config/rabbitMq.js');
 
 
 
@@ -56,30 +55,7 @@ master.on("error", (err) => console.error("Redis error:", err));
 //save messages in batch
 
 
-
-//connect to rabbitmq server 
-
-//consumer
-connectConsumer()
-
-//Producer
-connectToRabbitMqServer()
-  .then(async (client) => {
-    console.log("connected to rabbitMq server successfully");
-
-    rabbitmqClient = client;
-
-    // Create stream
-    await client.createStream({
-      stream: streamName,
-      arguments: { "max-length-bytes": streamSizeRetention }
-    });
-    await initRabbitPublisher();
-  })
-  .catch((err) => {
-    console.log("RabbitMQ error:", err);
-  });
-
+connectToRabbitQueue();
 
 // seperate public socket connection for authentication and signup
 

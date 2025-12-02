@@ -1,34 +1,31 @@
-const rabbit = require('rabbitmq-stream-js-client');
+const amqp = require('amqplib');
 
-let rabbitmqClient;
-let publisher;
+let channel;
+let connection; // store connection globally
+let queue;
 
-const connectToRabbitMqServer = async () => {
-    rabbitmqClient = await rabbit.connect({
-        hostname: "localhost",
-        port: 5552,
-        username: "guest",
-        password: "guest",
-        vhost: "/",
-    });
+async function connectToRabbitQueue() {
+    connection = await amqp.connect('amqp://localhost'); // store connection
+    channel = await connection.createChannel();
 
-    return rabbitmqClient;
-};
+    queue = 'task_queue';
+    await channel.assertQueue(queue, { durable: true });
+    console.log("RabbitMQ connected and queue asserted:", queue);
+}
 
-const initRabbitPublisher = async () => {
-    if (!rabbitmqClient) throw new Error("RabbitMQ not connected!");
-
-    publisher = await rabbitmqClient.declarePublisher({
-        stream: "sent-messages",
-    });
-
-    console.log("RabbitMQ publisher created");
-};
-
-
+async function rabbitQueueCleanup() {
+    if (channel) {
+        await channel.close();
+        console.log("Channel closed");
+    }
+    if (connection) {
+        await connection.close();
+        console.log("Connection closed");
+    }
+}
 
 module.exports = {
-    connectToRabbitMqServer,
-    initRabbitPublisher,
-    getPublisher: () => publisher,
+    connectToRabbitQueue,
+    rabbitQueueCleanup,
+    getChannel: () => channel,
 };

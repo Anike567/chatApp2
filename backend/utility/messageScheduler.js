@@ -1,19 +1,24 @@
 const MAX_INTERVAL_MS = parseInt(process.env.MAX_INTERVAL_MS);
-const {
-    getMessageBatch,
-} = require('./../config/rabbitConsumer');
+const { getChannel } = require('../config/rabbitMq');
 const saveOfflineMessage = require('./saveMessageForOfflineUser');
+const queue = 'task_queue'
 
 const messageScheduler = () => {
 
 
     setInterval(async () => {
+        const newBatch = [];
         try {
-            const messages = getMessageBatch();
-            if(messages.length > 0){
-                // console.log(await saveOfflineMessage(messages));
-                console.log(messages);
-            }
+            getChannel().consume(queue,(msg)=>{
+                if(msg != null){
+                    newBatch.push((JSON.parse(msg.content)));
+                    console.log(newBatch);
+                    getChannel().ack(msg);
+                }else{
+                    console.log(newBatch);
+                    saveOfflineMessage(newBatch);
+                }
+            })
         } catch (error) {
             console.error("Error processing message batch:", error);
         }
