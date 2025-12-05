@@ -6,24 +6,17 @@ const socketHandler = require('./socket/socketHandler.js');
 const { AppDataSource } = require('./config/data-source.js');
 const publicHandler = require('./socket/publicSocketHandle.js');
 const { master, pubClient, subClient } = require('./config/redis.js');
-const { messageScheduler } = require('./utility/messageScheduler.js');
 const { connectToRabbitQueue } = require('./config/rabbitMq.js');
 
-
-
-const streamName = "sent-messages";
-const streamSizeRetention = 5 * 1e9;
-
-let rabbitmqClient;
 require('dotenv').config();
 
 const app = express();
 
 
+
 AppDataSource.initialize()
   .then(() => {
     console.log("connected to database successully");
-    messageScheduler();
   })
   .catch((err) => {
     console.log(err);
@@ -66,11 +59,3 @@ server.listen(4000, () => {
   console.log('Server is up and running on port 4000');
 });
 
-
-
-
-module.exports.publisher = async()=>{
-  await rabbitmqClient.declarePublisher({
-      stream: streamName
-    });
-};

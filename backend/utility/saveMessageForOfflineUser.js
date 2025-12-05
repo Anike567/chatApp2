@@ -15,9 +15,6 @@ const saveOfflineMessage = async (messages) => {
 
         console.log("Saving messages:", newMessages);
         const savedMessages = await messageRepository.save(newMessages);
-        if(savedMessages){
-            commitProcessedMessages();
-        }
         return savedMessages;
     } catch (err) {
         console.error("Error saving offline messages:", err);
