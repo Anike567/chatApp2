@@ -11,6 +11,7 @@ const updateSocketId = require('./updateSocketId');
 const heartbeat = require('./hearbeat');
 const {sendAndSaveMessages, getMessages, deleteMessage, editMessage} = require('./messages');
 const {subClient} = require ('./../config/redis');
+const checkUndeleiveredMessage = require('../utility/checkUndeleiveredMessage');
 const SERVER_ID = process.env.SERVER_ID;
 
 const socketHandler = (io) => {
@@ -42,7 +43,9 @@ const socketHandler = (io) => {
             updateSocketId(data, cb);
         });
 
-
+        socket.on('getUndeleiveredMessages',(data, cb)=>{
+            checkUndeleiveredMessage(data, cb);
+        })
 
         socket.on('getMessages', async (data, callback) => {
             getMessages(data, callback);

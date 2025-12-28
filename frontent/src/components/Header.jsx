@@ -8,7 +8,9 @@ import FriendRequests from "../components/FriendRequests";
 import Logout from "../components/Logout";
 import Modal from "./../components/Modal";
 import { SocketContext } from "../store/socketIdContext";
+import { HiX } from "react-icons/hi";
 import Profile from "./Profile";
+
 
 
 export default function Header({ friendsList }) {
@@ -23,22 +25,39 @@ export default function Header({ friendsList }) {
 
 
 
-    const menuItems = [
+    const [menuItems, setMenuItems] = useState([
         { id: 1, label: "Profile" },
         { id: 2, label: "Change Profile Picture" },
         { id: 3, label: "Change Password" },
         { id: 4, label: "Friend Requests" },
-        { id: 5, label: "Logout" },
-    ];
+        { id: 5, label: "Enable Notification" },
+        { id: 6, label: "Logout" },
+    ]);
 
     const settingComponents = {
         1: <Profile />,
         2: <UpdateProfile />,
         3: <ForgetPassword />,
         4: <FriendRequests />,
-        5: <Logout user={user} />
+        6: <Logout user={user} />
     };
 
+    const enableNotification = () => {
+        if (!("Notification" in window)) {
+            alert("This browser not support notification");
+            return;
+        }
+
+        Notification.requestPermission()
+            .then((permission) => {
+                if (permission === "granted") {
+                    setMenuItems((prev) => (
+                        prev.filter((menu) => (menu.id !== 5))
+                    ));
+                    return;
+                }
+            })
+    }
     useEffect(() => {
         const timer = setTimeout(() => {
             if (searchText.trim()) {
@@ -49,11 +68,14 @@ export default function Header({ friendsList }) {
         }, 500);
         return () => clearTimeout(timer);
     }, [searchText]);
+    
     return (
         <div className="p-5 border-b bg-white shadow-sm">
             <div className="flex justify-between items-center px-4">
                 <h1 className="text-2xl font-bold text-gray-800 mb-4">Messages</h1>
-                <HiDotsVertical color="black" size={25} className="cursor-pointer" onClick={() => { setShowSetting((prev) => !prev) }} />
+                {!showSetting && <HiDotsVertical color="black" size={25} className="cursor-pointer" onClick={() => { setShowSetting(true) }} />}
+                {showSetting && <HiX size={25} className="cursor-pointer" color="red" onClick={() => { setShowSetting(false) }} />
+                }
             </div>
 
             <div className="relative">
@@ -86,7 +108,15 @@ export default function Header({ friendsList }) {
                                             : "hover:bg-blue-50 hover:shadow-md hover:text-blue-600"
                                         }
           `}
-                                    onClick={() => { setSettingOption(item.id); setIsOpen(true) }}
+                                    onClick={() => {
+                                        if (item.id === 5) {
+                                            enableNotification();
+                                            return;
+                                        }
+                                        setSettingOption(item.id);
+                                        setIsOpen(true)
+
+                                    }}
                                     onMouseEnter={() => { setSelected(item.id) }}
                                 >
                                     {item.label}

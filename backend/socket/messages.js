@@ -4,6 +4,7 @@ const { uuidToBase64UrlSafe, base64UrlSafeToUuid } = require('../utility/base64E
 const { AppDataSource } = require('./../config/data-source');
 const { pubClient } = require('./../config/redis');
 const { getPublisher, getChannel } = require('../config/rabbitMq');
+const saveOfflineMessage = require('../utility/saveMessageForOfflineUser');
 const SERVER_ID = process.env.SERVER_ID;
 const queue = 'task_queue'
 
@@ -12,14 +13,17 @@ const sendAndSaveMessages = async (data, cb, authNamespace) => {
     try {
 
         data = data.msg;
-        await getChannel().sendToQueue(queue, Buffer.from(JSON.stringify(data), { persistent: true }))
+        
+        // await getChannel().sendToQueue(queue, Buffer.from(JSON.stringify(data), { persistent: true }))
         const socketId = await master.get(uuidToBase64UrlSafe(data.to));
         if (!socketId) {
             cb({ error: false, status: false });
+            data.delivered = false;
             return;
         }
 
         if (socketId) {
+            data.delivered = true;
             if (authNamespace.sockets.has(socketId)) {
                 authNamespace.to(socketId).emit('message-received', data);
 
@@ -33,6 +37,7 @@ const sendAndSaveMessages = async (data, cb, authNamespace) => {
             }
             cb({ error: false, status: true });
         }
+        saveOfflineMessage(data);
         return;
 
     } catch (error) {

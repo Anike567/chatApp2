@@ -1,11 +1,11 @@
 const amqp = require('amqplib');
 
 let channel;
-let connection; // store connection globally
+let connection; 
 let queue;
 
 async function connectToRabbitQueue() {
-    connection = await amqp.connect('amqp://localhost'); // store connection
+    connection = await amqp.connect('amqp://localhost');
     channel = await connection.createChannel();
 
     queue = 'task_queue';

@@ -8,7 +8,7 @@ import Chats from "../components/Chats";
 
 export default function Home() {
   const { user, token } = useContext(AuthContext).authData;
-  const { socket, socketId } = useContext(SocketContext);
+  const {undeleiverdMessage, socket, socketId } = useContext(SocketContext);
   const [isLoading, setLoading] = useState(true);
   const [userList, setUserList] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -19,7 +19,6 @@ export default function Home() {
   const userStatusRefs = useRef(new Map());
 
   const handleIncomingMessage = useCallback((data) => {
-
     if (!selectedUser || data.from !== selectedUser.u__id) {
 
       setUserList((prevList) => {
